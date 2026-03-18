@@ -20,6 +20,7 @@ router.use(express.json());
 
 // 当前活跃的 Claude 进程
 let activeProcess = null;
+let activeSessionId = null; // 当前正在处理的 session
 
 // 广播消息
 function broadcastClaude(type, data) {
@@ -59,6 +60,19 @@ router.get('/sessions', async (req, res) => {
   const projectsDir = getClaudeProjectsDir();
   const sessions = [];
 
+  // 判断 session 是否正在运行：优先使用 activeSessionId，其次检查文件修改时间
+  const isWorking = (sessionIdFromFile, stat) => {
+    // 如果这个 session 正是当前正在处理的，直接返回 working
+    if (activeSessionId && sessionIdFromFile === activeSessionId) {
+      return true;
+    }
+    // 否则检查文件是否最近被修改
+    const now = Date.now();
+    const mtimeMs = stat.mtime.getTime();
+    const diff = now - mtimeMs;
+    return diff < 60000; // 60 秒内修改过
+  };
+
   try {
     // 如果指定了项目，只获取该项目下的会话
     if (projectId) {
@@ -70,13 +84,14 @@ router.get('/sessions', async (req, res) => {
         for (const file of jsonlFiles) {
           const filePath = path.join(projectDir, file);
           const stat = fs.statSync(filePath);
+          const sessionId = file.replace('.jsonl', '');
           sessions.push({
-            id: file.replace('.jsonl', ''),
-            sessionId: file.replace('.jsonl', ''),
+            id: sessionId,
+            sessionId: sessionId,
             name: `Session ${file.substring(0, 8)}`,
             projectPath: decodeProjectPath(projectId),
             projectId,
-            status: 'idle',
+            status: isWorking(sessionId, stat) ? 'working' : 'idle',
             lastActivity: stat.mtime,
             size: stat.size
           });
@@ -96,13 +111,14 @@ router.get('/sessions', async (req, res) => {
             for (const file of jsonlFiles) {
               const filePath = path.join(projectDir, file);
               const stat = fs.statSync(filePath);
+              const sessionId = file.replace('.jsonl', '');
               sessions.push({
-                id: file.replace('.jsonl', ''),
-                sessionId: file.replace('.jsonl', ''),
+                id: sessionId,
+                sessionId: sessionId,
                 name: `Session ${file.substring(0, 8)}`,
                 projectPath: decodeProjectPath(entry.name),
                 projectId: entry.name,
-                status: 'idle',
+                status: isWorking(sessionId, stat) ? 'working' : 'idle',
                 lastActivity: stat.mtime,
                 size: stat.size
               });
@@ -187,9 +203,13 @@ router.post('/send', async (req, res) => {
 
   broadcastClaude('user', message);
 
-  // 检查是否有 CLAUDECODE 环境变量（嵌套会话检测）
-  const env = { ...process.env };
-  delete env.CLAUDECODE;
+  // 彻底清除所有 Claude 相关环境变量，避免嵌套检测
+  const env = {};
+  for (const key of Object.keys(process.env)) {
+    if (!key.toLowerCase().includes('claude')) {
+      env[key] = process.env[key];
+    }
+  }
 
   // 使用 -p 模式发送消息
   let args;
@@ -201,6 +221,8 @@ router.post('/send', async (req, res) => {
 
   const cwd = projectPath && fs.existsSync(projectPath) ? projectPath : process.cwd();
 
+  console.log(`[Claude] Starting with env keys: ${Object.keys(env).join(', ')}`);
+
   const claude = spawn('claude', args, {
     shell: true,
     cwd: cwd,
@@ -208,6 +230,7 @@ router.post('/send', async (req, res) => {
   });
 
   activeProcess = claude;
+  activeSessionId = sessionId || 'new';  // 追踪当前活跃的 session
   let output = '';
   let sentFirst = false;
 
@@ -230,6 +253,7 @@ router.post('/send', async (req, res) => {
 
   claude.on('close', (code) => {
     activeProcess = null;
+    activeSessionId = null;
     broadcastClaude('status', 'done');
     broadcastClaude('done', { exitCode: code });
     sendResponse();

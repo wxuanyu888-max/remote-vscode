@@ -1,0 +1,10 @@
+[      18ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:397
+[      20ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:34:28)
+    at loadSessions (http://localhost:3000/js/app.js:289:24) @ http://localhost:3000/js/app.js:39
+[      20ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:34:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:1515:24) @ http://localhost:3000/js/app.js:39
+[      20ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:34:28)
+    at loadSessions (http://localhost:3000/js/app.js:289:24) @ http://localhost:3000/js/app.js:300

@@ -1,0 +1,3 @@
+[       7ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:34:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:1425:24) @ http://localhost:3000/js/app.js:39

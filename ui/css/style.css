@@ -14,7 +14,7 @@
   --bg-sidebar: #f3f3f3;
   --bg-header: #ffffff;
   --bg-input: #ffffff;
-  --bg-output: #1e1e1e;
+  --bg-output: #ffffff;
 
   /* 边框和分割线 */
   --border-color: #e0e0e0;
@@ -161,7 +161,7 @@ body {
   overflow-y: auto;
   padding: 12px;
   background: var(--bg-output);
-  color: var(--text-inverse);
+  color: var(--text-primary);
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   line-height: 1.6;
@@ -251,6 +251,55 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-secondary);
+}
+
+/* 项目选择下拉框 */
+.project-select {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.project-select:hover {
+  border-color: var(--border-focus);
+}
+
+.project-select:focus {
+  border-color: var(--primary);
+}
+
+/* Session 选择区域 */
+.session-select-area {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.session-select {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.session-select:hover {
+  border-color: var(--border-focus);
+}
+
+.session-select:focus {
+  border-color: var(--primary);
 }
 
 .icon-btn {
@@ -455,72 +504,363 @@ body {
   line-height: 1.6;
 }
 
-/* 右侧编辑器面板 */
-.editor-panel {
+/* 右侧编辑器区域 */
+.editor-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+/* 编辑器分组容器 */
+.editor-groups {
   flex: 1;
   display: flex;
   overflow: hidden;
 }
 
-/* 编辑器 pane */
-.editor-pane {
+/* 单个编辑器分组 */
+.editor-group {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-width: 200px;
+  position: relative;
 }
 
-/* Claude 对话 pane */
-.chat-pane {
-  flex: 1;
+.editor-group:not(:last-child) {
+  border-right: 1px solid var(--border-color);
+}
+
+/* 分组标题栏 */
+.editor-group .group-header {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  padding: 4px;
+}
+
+.editor-group:not(:first-child) .group-header {
+  display: block;
+}
+
+.group-close-btn {
+  width: 20px;
+  height: 20px;
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 300px;
-  border-left: 1px solid var(--border-color);
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.group-close-btn:hover {
+  background: var(--error);
+  color: white;
 }
 
 /* 分隔条 */
 .split-handle {
   width: 4px;
-  background: var(--border-color);
+  background: transparent;
   cursor: col-resize;
   flex-shrink: 0;
+  transition: background 0.15s;
 }
 
-.split-handle:hover {
+.split-handle:hover,
+.split-handle.dragging {
   background: var(--primary);
 }
 
-/* Pane 标题栏 */
-.pane-header {
+/* 水平分屏的分隔条 */
+.split-handle-horizontal {
+  height: 4px;
+  width: 100%;
+  cursor: row-resize;
+}
+
+/* 标签栏 */
+.tabs-bar {
   display: flex;
-  align-items: center;
-  padding: 8px 12px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
   flex-shrink: 0;
 }
 
-.pane-title {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.tabs-bar::-webkit-scrollbar {
+  height: 3px;
 }
 
-/* 未打开文件提示 */
-.no-file-open {
-  flex: 1;
+.tabs-bar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.tab:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.tab.active {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--primary);
+  margin-bottom: -1px;
+}
+
+/* 标签拖拽样式 */
+.tab.dragging {
+  opacity: 0.5;
+}
+
+.tab.drag-over {
+  background: var(--bg-tertiary);
+  border-bottom: 2px dashed var(--primary);
+}
+
+/* 拖拽指示器 */
+.drag-indicator {
+  position: absolute;
+  width: 2px;
+  background: var(--primary);
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* 分屏按钮 */
+.tab-actions {
+  display: none;
+  gap: 2px;
+  margin-left: auto;
+  padding-right: 4px;
+}
+
+.tab:hover .tab-actions {
+  display: flex;
+}
+
+.split-btn, .close-btn {
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
 }
 
-.no-file-open.hidden {
+.split-btn:hover, .close-btn:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* 分屏菜单 */
+.split-menu {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  min-width: 120px;
+}
+
+.split-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-primary);
+  transition: background 0.15s;
+}
+
+.split-menu-item:hover {
+  background: var(--bg-secondary);
+}
+
+.split-menu-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
+}
+
+.tab-icon {
+  margin-right: 6px;
+  font-size: 14px;
+}
+
+.tab-close {
+  margin-left: 8px;
+  padding: 2px;
+  border-radius: 3px;
+  opacity: 0.6;
+  transition: all 0.15s;
+}
+
+.tab-close:hover {
+  opacity: 1;
+  background: var(--bg-hover);
+}
+
+.tab-contents {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tab-content.active {
+  display: flex;
+}
+
+/* 欢迎页 */
+.welcome-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 40px;
+}
+
+.welcome-page h1 {
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.welcome-page p {
+  margin-bottom: 10px;
+}
+
+.welcome-page .btn-primary {
+  margin-top: 20px;
+}
+
+/* 对话容器 */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 120px);
+  border-top: 1px solid var(--border-color);
+  margin-top: 20px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--bg-output);
+}
+
+.chat-input-area {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.chat-input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.btn-send {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-send:hover {
+  opacity: 0.9;
+}
+
+.btn-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 文件浏览器样式 */
+.file-browser {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 合并项目列表和文件列表 */
+.project-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.file-path {
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Session列表头 */
@@ -747,30 +1087,31 @@ body {
   white-space: pre-wrap;
   word-break: break-all;
   margin-bottom: 2px;
+  color: var(--text-primary);
 }
 
 .output-line.system {
-  color: #858585;
+  color: #616161;
 }
 
 .output-line.stdout {
-  color: #d4d4d4;
+  color: #1e1e1e;
 }
 
 .output-line.stderr {
-  color: #f14c4c;
+  color: #e81123;
 }
 
 .output-line.info {
-  color: #3794ff;
+  color: #0078d4;
 }
 
 .output-line.success {
-  color: #4ec9b0;
+  color: #107c10;
 }
 
 .output-line.cmd {
-  color: #4ec9b0;
+  color: #107c10;
 }
 
 /* 对话区域 */
@@ -806,14 +1147,15 @@ body {
 
 .chat-messages .output-line {
   margin-bottom: 8px;
+  color: var(--text-primary);
 }
 
 .chat-messages .output-line.user {
-  color: #569cd6;
+  color: #0078d4;
 }
 
 .chat-messages .output-line.assistant {
-  color: #d4d4d4;
+  color: #1e1e1e;
 }
 
 /* 文件变更样式 */
@@ -830,11 +1172,11 @@ body {
 }
 
 .output-line.file-change .file-added {
-  color: #b5cea8;
+  color: #107c10;
 }
 
 .output-line.file-change .file-removed {
-  color: #ce9178;
+  color: #e81123;
 }
 
 /* Diff 样式 */
@@ -866,16 +1208,16 @@ body {
 
 /* 工具调用样式 */
 .output-line.tool {
-  color: #dcdcaa;
+  color: #6a9955;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
 }
 
 .output-line.tool-result {
-  color: #9cdcfe;
+  color: #001480;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 11px;
-  background: rgba(156, 220, 254, 0.05);
+  background: rgba(0, 20, 128, 0.05);
   padding: 4px 8px;
   margin: 2px 0;
 }

@@ -207,3 +207,5 @@
 [ 6861430ms] [ERROR] API Error: TypeError: Failed to fetch
     at apiRequest (http://localhost:3000/js/app.js:28:28)
     at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[11296580ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[11296584ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0

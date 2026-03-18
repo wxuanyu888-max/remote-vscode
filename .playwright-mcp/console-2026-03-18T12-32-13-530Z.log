@@ -1,0 +1,4 @@
+[     373ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0
+[   21016ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:34:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:1406:24) @ http://localhost:3000/js/app.js:39

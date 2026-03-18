@@ -83,7 +83,24 @@
       "Bash(curl -s -X POST http://localhost:3000/api/chat/send -H \"Content-Type: application/json\" -d \"{\\\\\"message\\\\\":\\\\\"hello\\\\\",\\\\\"sessionId\\\\\":\\\\\"9c9610bc-a4b9-4ed3-a0f7-e34a11658685\\\\\",\\\\\"projectPath\\\\\":\\\\\"C:/Users/29718/remote-vscode\\\\\"}\" 2>&1 | head -20)",
       "Bash(cmd //c \"taskkill /F /PID 19960\" && sleep 1 && cd C:/Users/29718/remote-vscode && npm start)",
       "Bash(curl -s -X POST http://localhost:3000/api/chat/send -H \"Content-Type: application/json\" -d '{\"message\":\"hello\",\"sessionId\":\"9c9610bc-a4b9-4ed3-a0f7-e34a11658685\",\"projectPath\":\"C:/Users/29718/remote-vscode\"}')",
-      "Bash(curl -s http://localhost:3000/)"
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(cd C:/Users/29718/remote-vscode && echo \"hello\" | claude --continue 9c9610bc-a4b9-4ed3-a0f7-e34a11658685 -p \"hello\" 2>&1 | head -30)",
+      "Bash(cd C:/Users/29718/remote-vscode && unset CLAUDECODE && echo \"hello\" | claude --continue 9c9610bc-a4b9-4ed3-a0f7-e34a11658685 -p \"hello\" 2>&1 | head -30)",
+      "Bash(cmd //c \"taskkill /F /PID 35652\" && sleep 1 && cd C:/Users/29718/remote-vscode && npm start)",
+      "Bash(curl -s -N \"http://localhost:3000/api/chat/stream/9c9610bc-a4b9-4ed3-a0f7-e34a11658685?projectId=C--Users--29718--remote-vscode\" 2>&1 | head -100)",
+      "Bash(npm start:*)",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_close",
+      "Bash(node -c ui/js/app.js 2>&1)",
+      "Bash(cmd //c \"taskkill /F /PID 21564\" && sleep 1 && cd C:/Users/29718/remote-vscode && npm start)",
+      "Bash(curl -s \"http://localhost:3000/api/chat/sessions?projectId=C--Users--29718--remote-vscode\")",
+      "Bash(curl -s \"http://localhost:3000/api/chat/sessions?projectId=C-Users-29718-remote-vscode\")",
+      "Bash(curl -s \"http://localhost:3000/api/chat/sessions?projectId=C--Users-29718-remote-vscode\")",
+      "Bash(curl -s \"http://localhost:3000/api/chat/stream/9c9610bc-a4b9-4ed3-a0f7-e34a11658685?projectId=C--Users-29718-remote-vscode\" --no-buffer -H \"Accept: text/event-stream\" 2>&1 | head -c 300)",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_evaluate",
+      "Bash(node --check C:/Users/29718/remote-vscode/ui/js/app.js 2>&1)",
+      "mcp__playwright__browser_select_option"
     ]
   }
 }

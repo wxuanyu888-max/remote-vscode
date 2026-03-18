@@ -1,0 +1,4 @@
+[      46ms] TypeError: Cannot set properties of null (setting 'innerHTML')
+    at showLoading (http://localhost:3000/js/app.js:26:21)
+    at loadProjects (http://localhost:3000/js/app.js:197:3)
+    at HTMLDocument.init (http://localhost:3000/js/app.js:1030:3)

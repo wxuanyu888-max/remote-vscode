@@ -1,0 +1,105 @@
+[      42ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[    3036ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[    6036ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[    9037ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   12030ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   15050ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   18043ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   21041ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   24042ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   27042ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   30361ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   33041ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   36047ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   39039ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   42046ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   45351ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   48040ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   51035ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   54043ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   57046ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   60345ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   63038ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   66048ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   69050ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   72045ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   75356ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   78043ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   81051ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   84038ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   87039ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   90359ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   93046ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   96043ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[   99044ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300
+[  102038ms] [ERROR] [loadSessions] Error: ReferenceError: sessionList is not defined
+    at renderSessions (http://localhost:3000/js/app.js:327:3)
+    at loadSessions (http://localhost:3000/js/app.js:299:5) @ http://localhost:3000/js/app.js:300

@@ -10,9 +10,15 @@ const state = {
   sessions: [],
   currentSession: null,
   isClaudeWorking: false,
-  currentView: 'projects',
+  currentView: 'explorer',
   currentFilePath: '',
-  eventSource: null  // SSE 连接
+  eventSource: null,  // SSE 连接
+  openTabs: [],       // 打开的标签数组
+  activeTab: 'welcome', // 当前激活的标签
+  tabIdCounter: 0,     // 标签ID计数器
+  editorGroups: [{ id: 'main', tabs: [] }], // 编辑器分组（支持分屏）
+  activeGroup: 'main', // 当前激活的分组
+  draggedTab: null     // 当前拖拽的标签
 };
 
 // ============ 工具函数 ============
@@ -88,7 +94,8 @@ function handleWSMessage(data) {
 }
 
 function addSessionOutput(text, type = 'stdout') {
-  const output = $('session-output');
+  // 使用 chat-messages 区域显示
+  const output = $('chat-messages') || $('session-output');
   if (!output) return;
 
   // 检测文件变更格式并以特殊样式显示
@@ -190,9 +197,7 @@ function initViewSwitcher() {
 // ============ 项目列表 ============
 
 async function loadProjects() {
-  const projectList = $('project-list');
-  showLoading(projectList, '加载项目...');
-
+  // 不再需要 project-list 元素，直接加载
   try {
     let projects = [];
     try {
@@ -209,46 +214,38 @@ async function loadProjects() {
     state.projects = projects;
     renderProjects();
   } catch (error) {
-    projectList.innerHTML = `<div class="loading" style="color: var(--error);">${error.message}</div>`;
+    console.error('加载项目失败:', error);
   }
 }
 
 function renderProjects() {
-  const projectList = $('project-list');
-  if (!state.projects.length) {
-    projectList.innerHTML = '<div class="empty-state"><p>暂无项目</p></div>';
-    return;
-  }
+  const projectSelect = $('project-select');
+  if (!projectSelect) return;
 
-  projectList.innerHTML = state.projects.map(project => `
-    <div class="project-item" data-path="${project.path}" data-name="${project.name}">
-      <div class="project-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M1.5 1h6l1 1H14l.5.5v4.5l-.5.5H10l-1 1v4l-1 1H2l-.5-.5v-11L1.5 1zm1 1v10h4v-3h2v3h4V3H7.5l-1-1H2.5z"/>
-        </svg>
-      </div>
-      <span class="project-name">${project.name}</span>
-      <span class="project-path">${project.path}</span>
-    </div>
-  `).join('');
+  // 填充下拉框
+  projectSelect.innerHTML = '<option value="">选择项目...</option>' +
+    state.projects.map(project =>
+      `<option value="${project.path}" data-name="${project.name}">${project.name}</option>`
+    ).join('');
 
-  projectList.querySelectorAll('.project-item').forEach(item => {
-    item.addEventListener('click', () => selectProject(item.dataset.path, item.dataset.name));
+  // 绑定选择事件
+  projectSelect.addEventListener('change', (e) => {
+    const path = e.target.value;
+    const name = e.target.options[e.target.selectedIndex]?.dataset?.name || path.split(/[/\\]/).pop();
+    if (path) {
+      selectProject(path, name);
+    }
   });
 
   // 默认选中第一个
   if (state.projects.length > 0 && !state.currentProject) {
     const firstProject = state.projects[0];
+    projectSelect.value = firstProject.path;
     selectProject(firstProject.path, firstProject.name);
   }
 }
 
 function selectProject(path, name) {
-  document.querySelectorAll('.project-item').forEach(item => item.classList.remove('active'));
-
-  const targetItem = document.querySelector(`.project-item[data-path="${path}"]`);
-  if (targetItem) targetItem.classList.add('active');
-
   state.currentProject = { path, name };
   state.currentFilePath = path;
 
@@ -256,10 +253,8 @@ function selectProject(path, name) {
   const projectId = encodeProjectPath(path);
   loadSessions(projectId);
 
-  // 如果当前是文件视图，加载文件
-  if (state.currentView === 'files') {
-    loadFiles(path);
-  }
+  // 始终加载文件
+  loadFiles(path);
 }
 
 // 解码项目路径 (projectId -> 实际路径)
@@ -272,103 +267,104 @@ function decodeProjectPath(folderName) {
 
 // 编码项目路径为 projectId 格式 (实际路径 -> projectId)
 function encodeProjectPath(filePath) {
-  // 将 C:\Users\29718\remote-vscode 转换为 C--Users--29718--remote-vscode
-  return filePath.replace(/^([a-zA-Z]):/, '$1--').replace(/\\/g, '--');
+  // 将 C:\Users\29718\remote-vscode 转换为 C--Users-29718-remote-vscode
+  // 驱动器号后面的 \ 变成 --，其他 \ 变成 -
+  return filePath
+    .replace(/^([a-zA-Z]):\\/, '$1--')  // C:\ -> C--
+    .replace(/\\/g, '-');                // 其他 \ -> -
 }
 
 // ============ Session列表 ============
 
 async function loadSessions(projectId = null) {
-  const sessionList = $('session-list');
-  showLoading(sessionList, '加载Session...');
+  const sessionSelect = $('session-select');
+  if (!sessionSelect) return;
+
+  showLoading(sessionSelect, '加载Session...');
 
   try {
     // 如果传入了 projectId，传递给后端
     const url = projectId ? `/api/chat/sessions?projectId=${encodeURIComponent(projectId)}` : '/api/chat/sessions';
+    console.log('[loadSessions] URL:', url);
     const data = await apiRequest(url);
+    console.log('[loadSessions] sessions:', data.sessions?.length);
     state.sessions = data.sessions || [];
 
     if (!state.sessions.length) {
-      sessionList.innerHTML = `
-        <div class="empty-state">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
-            <path d="M12 6v6l4 2"/>
-          </svg>
-          <p>暂无活跃 Session</p>
-          <span>${state.currentProject ? `在 ${state.currentProject.name} 中` : '选择项目开始'}</span>
-        </div>
-      `;
+      sessionSelect.innerHTML = '<option value="">暂无 Session</option>';
+      showLoading(sessionSelect, '');
       return;
     }
 
     renderSessions();
   } catch (error) {
-    sessionList.innerHTML = `<div class="empty-state" style="color: var(--error);">${error.message}</div>`;
+    console.error('[loadSessions] Error:', error);
+    sessionSelect.innerHTML = `<option value="">加载失败</option>`;
   }
 }
 
 function renderSessions() {
-  const sessionList = $('session-list');
-  sessionList.innerHTML = state.sessions.map(session => {
-    const isWorking = session.status === 'working';
-    const sessionId = session.id || session.sessionId || 'unknown';
-    const shortId = sessionId.substring(0, 8);
-    const projectPath = session.projectPath || state.currentProject?.path || '';
-    const displayPath = projectPath.length > 30 ? '...' + projectPath.slice(-27) : projectPath;
+  const sessionSelect = $('session-select');
+  if (!sessionSelect) return;
 
-    return `
-      <div class="session-item" data-session-id="${sessionId}">
-        <div class="session-item-left">
-          <span class="session-status-dot ${isWorking ? 'active' : 'idle'}"></span>
-          <div class="session-item-info">
-            <div class="session-item-name">${session.name || `Session ${shortId}`}</div>
-            <div class="session-item-path">${displayPath}</div>
-          </div>
-        </div>
-        <span class="session-item-status ${isWorking ? 'working' : ''}">${isWorking ? '工作中' : '空闲'}</span>
-      </div>
-    `;
-  }).join('');
+  // 过滤出正在运行的 session
+  const workingSessions = state.sessions.filter(s => s.status === 'working');
 
-  sessionList.querySelectorAll('.session-item').forEach(item => {
-    item.addEventListener('click', () => selectSession(item.dataset.sessionId));
-  });
+  if (workingSessions.length > 0) {
+    // 有正在运行的 session，显示它们
+    sessionSelect.innerHTML = '<option value="">选择运行中的 Session...</option>' +
+      workingSessions.map(session => {
+        const sessionId = session.id || session.sessionId || 'unknown';
+        const shortId = sessionId.substring(0, 8);
+        return `<option value="${sessionId}">${session.name || `Session ${shortId}`} (工作中)</option>`;
+      }).join('');
 
-  if (state.currentSession) {
-    const targetSession = document.querySelector(`.session-item[data-session-id="${state.currentSession}"]`);
-    if (targetSession) targetSession.classList.add('active');
+    // 自动选中第一个正在运行的 session（如果没有选中其他）
+    if (!state.currentSession) {
+      const firstWorking = workingSessions[0];
+      const sessionId = firstWorking.id || firstWorking.sessionId;
+      sessionSelect.value = sessionId;
+      selectSession(sessionId);
+    }
+  } else {
+    // 没有正在运行的 session，显示所有 idle 的
+    sessionSelect.innerHTML = '<option value="">暂无运行中的 Session</option>' +
+      state.sessions.slice(0, 5).map(session => {
+        const sessionId = session.id || session.sessionId || 'unknown';
+        const shortId = sessionId.substring(0, 8);
+        return `<option value="${sessionId}">${session.name || `Session ${shortId}`}</option>`;
+      }).join('');
   }
+
+  // 绑定选择事件
+  sessionSelect.onchange = (e) => {
+    const sessionId = e.target.value;
+    if (sessionId) {
+      selectSession(sessionId);
+    }
+  };
 }
 
 function selectSession(sessionId) {
-  document.querySelectorAll('.session-item').forEach(item => item.classList.remove('active'));
-
-  const targetItem = document.querySelector(`.session-item[data-session-id="${sessionId}"]`);
-  if (targetItem) targetItem.classList.add('active');
+  // 更新下拉框选中状态
+  const sessionSelect = $('session-select');
+  if (sessionSelect) {
+    sessionSelect.value = sessionId;
+  }
 
   state.currentSession = sessionId;
 
   const session = state.sessions.find(s => (s.id || s.sessionId) === sessionId);
-  if (session) {
-    $('current-session-name').textContent = session.name || `Session ${sessionId.substring(0, 8)}`;
-    $('current-session-path').textContent = session.projectPath || state.currentProject?.path || '-';
 
-    const status = session.status || 'idle';
-    updateSessionStatus(status);
+  // 更新聊天区域
+  const chatMessages = $('chat-messages');
+  if (chatMessages) {
+    chatMessages.innerHTML = `
+      <div class="output-line system">=== 会话: ${sessionId.substring(0, 8)} ===</div>
+      <div class="output-line system">项目: ${state.currentProject?.name || '未知'}</div>
+      <div class="output-line system">正在连接实时流...</div>
+    `;
   }
-
-  $('session-output').innerHTML = `
-    <div class="output-line system">=== Session 信息 ===</div>
-    <div class="output-line system">Session ID: ${sessionId}</div>
-    <div class="output-line system">项目: ${state.currentProject?.name || '未知'}</div>
-    <div class="output-line system">正在连接实时流...</div>
-  `;
-
-  $('chat-messages').innerHTML = `
-    <div class="output-line system">=== 对话记录 ===</div>
-    <div class="output-line system">选择 Session 开始对话</div>
-  `;
 
   // 连接 SSE 实时流
   connectSessionStream(sessionId);
@@ -615,39 +611,771 @@ function renderFileTree(treeData) {
   });
 }
 
-// ============ 文件查看器 ============
+// ============ 多标签页管理 ============
 
-function openFileViewer(filePath, fileName) {
-  const viewer = $('file-viewer');
-  const noFileOpen = $('no-file-open');
-  const filenameEl = $('viewer-filename');
-  const contentEl = $('viewer-content');
+// 打开文件标签
+function openFileTab(filePath, fileName) {
+  // 检查是否已存在该文件的标签
+  const existingTab = state.openTabs.find(t => t.type === 'file' && t.path === filePath);
+  if (existingTab) {
+    switchToTab(existingTab.id);
+    return;
+  }
 
-  viewer.classList.remove('hidden');
-  noFileOpen.classList.add('hidden');
-  filenameEl.textContent = fileName;
-  contentEl.innerHTML = '<div class="loading">加载中...</div>';
+  // 创建新标签
+  const tabId = 'file-' + (++state.tabIdCounter);
+  const tab = {
+    id: tabId,
+    type: 'file',
+    name: fileName,
+    path: filePath,
+    groupId: state.activeGroup
+  };
+  state.openTabs.push(tab);
 
-  // 调用API读取文件
-  // 直接传绝对路径，不需要root参数
-  apiRequest(`/api/files/read?path=${encodeURIComponent(filePath)}`)
+  // 将标签添加到当前分组
+  const group = state.editorGroups.find(g => g.id === state.activeGroup);
+  if (group) {
+    group.tabs.push(tabId);
+  }
+
+  // 创建标签元素
+  renderTab(tab, state.activeGroup);
+
+  // 创建标签内容
+  renderFileTabContent(tab, state.activeGroup);
+
+  // 切换到新标签
+  switchToTab(tabId);
+}
+
+// 打开对话标签
+function openChatTab(sessionId, sessionName) {
+  // 检查是否已存在该对话的标签
+  const existingTab = state.openTabs.find(t => t.type === 'chat' && t.sessionId === sessionId);
+  if (existingTab) {
+    switchToTab(existingTab.id);
+    return;
+  }
+
+  // 创建新标签
+  const tabId = 'chat-' + (++state.tabIdCounter);
+  const tab = {
+    id: tabId,
+    type: 'chat',
+    name: sessionName || '新对话',
+    sessionId: sessionId,
+    groupId: state.activeGroup
+  };
+  state.openTabs.push(tab);
+
+  // 将标签添加到当前分组
+  const group = state.editorGroups.find(g => g.id === state.activeGroup);
+  if (group) {
+    group.tabs.push(tabId);
+  }
+
+  // 创建标签元素
+  renderTab(tab, state.activeGroup);
+
+  // 创建对话标签内容（复用现有的session-detail）
+  renderChatTabContent(tab, state.activeGroup);
+
+  // 切换到新标签
+  switchToTab(tabId);
+}
+
+// 渲染标签
+function renderTab(tab, groupId = 'main') {
+  // 根据 groupId 获取正确的 tabs-bar
+  let tabsBar;
+  if (groupId === 'main') {
+    tabsBar = $('tabs-bar');
+  } else {
+    tabsBar = document.querySelector(`[data-group-tabs="${groupId}"]`);
+  }
+
+  if (!tabsBar) {
+    console.log('[渲染] 未找到 tabs-bar, groupId:', groupId);
+    return;
+  }
+
+  const tabEl = document.createElement('div');
+  tabEl.className = 'tab';
+  tabEl.dataset.tabId = tab.id;
+  tabEl.dataset.groupId = groupId;
+  tabEl.draggable = true;
+
+  const icon = tab.type === 'file' ? '📄' : '💬';
+  tabEl.innerHTML = `
+    <span class="tab-icon">${icon}</span>
+    <span class="tab-name">${tab.name}</span>
+    <span class="tab-actions">
+      <button class="split-btn" data-split="vertical" title="分屏">⧈</button>
+      <button class="close-btn" title="关闭">×</button>
+    </span>
+  `;
+
+  // 点击事件处理
+  tabEl.addEventListener('click', (e) => {
+    const target = e.target;
+    if (target.classList.contains('close-btn')) {
+      e.stopPropagation();
+      closeTab(tab.id);
+    } else if (target.classList.contains('split-btn')) {
+      e.stopPropagation();
+      const splitType = target.dataset.split;
+      splitEditor(splitType);
+    } else {
+      switchToTab(tab.id);
+    }
+  });
+
+  // 拖拽事件
+  tabEl.addEventListener('dragstart', handleTabDragStart);
+  tabEl.addEventListener('dragend', handleTabDragEnd);
+  tabEl.addEventListener('dragover', handleTabDragOver);
+  tabEl.addEventListener('dragleave', handleTabDragLeave);
+  tabEl.addEventListener('drop', handleTabDrop);
+
+  tabsBar.appendChild(tabEl);
+}
+
+// ============ 标签拖拽功能 ============
+
+function handleTabDragStart(e) {
+  const tabEl = e.target.closest('.tab');
+  if (!tabEl) {
+    return;
+  }
+
+  state.draggedTab = tabEl;
+  tabEl.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', tabEl.dataset.tabId);
+
+  // 设置拖拽图像
+  const dragImage = tabEl.cloneNode(true);
+  dragImage.style.opacity = '0.8';
+  document.body.appendChild(dragImage);
+  e.dataTransfer.setDragImage(dragImage, 50, 20);
+  setTimeout(() => dragImage.remove(), 0);
+}
+
+function handleTabDragEnd(e) {
+  const tabEl = e.target.closest('.tab');
+  if (tabEl) {
+    tabEl.classList.remove('dragging');
+  }
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('drag-over'));
+  state.draggedTab = null;
+}
+
+function handleTabDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+
+  const tab = e.target.closest('.tab');
+  if (tab && tab !== state.draggedTab) {
+    tab.classList.add('drag-over');
+  }
+}
+
+function handleTabDragLeave(e) {
+  const tab = e.target.closest('.tab');
+  if (tab) {
+    tab.classList.remove('drag-over');
+  }
+}
+
+function handleTabDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const targetTab = e.target.closest('.tab');
+  let targetGroup = e.target.closest('.editor-group');
+
+  // 如果没有找到 editor-group，尝试从 tabs-bar 向上查找
+  if (!targetGroup) {
+    const tabsBar = e.target.closest('.tabs-bar');
+    if (tabsBar) {
+      targetGroup = tabsBar.closest('.editor-group');
+    }
+  }
+
+  // 再尝试从 tab-contents 向上查找
+  if (!targetGroup) {
+    const tabContents = e.target.closest('.tab-contents');
+    if (tabContents) {
+      targetGroup = tabContents.closest('.editor-group');
+    }
+  }
+
+  const draggedTabId = state.draggedTab?.dataset.tabId;
+  const draggedGroupId = state.draggedTab?.dataset.groupId;
+
+  if (!draggedTabId || !draggedGroupId) {
+    return;
+  }
+
+  // 如果拖拽到其他分组的空白区域
+  if (targetGroup && targetGroup.dataset.groupId !== draggedGroupId) {
+    moveTabToGroup(draggedTabId, targetGroup.dataset.groupId);
+    return;
+  }
+
+  // 如果拖拽到另一个标签
+  if (targetTab && targetTab !== state.draggedTab) {
+    const targetTabId = targetTab.dataset.tabId;
+    const targetTabGroupId = targetTab.dataset.groupId;
+
+    if (draggedGroupId === targetTabGroupId) {
+      // 同组内排序
+      reorderTabs(draggedTabId, targetTabId);
+    } else {
+      // 跨组移动
+      moveTabToGroup(draggedTabId, targetTabGroupId);
+    }
+  }
+
+  if (targetTab) targetTab.classList.remove('drag-over');
+}
+
+// 重新排序标签
+function reorderTabs(draggedTabId, targetTabId) {
+  const draggedIndex = state.openTabs.findIndex(t => t.id === draggedTabId);
+  const targetIndex = state.openTabs.findIndex(t => t.id === targetTabId);
+
+  if (draggedIndex === -1 || targetIndex === -1) return;
+
+  // 获取拖拽的标签
+  const [draggedTab] = state.openTabs.splice(draggedIndex, 1);
+
+  // 插入到目标位置
+  const newIndex = state.openTabs.findIndex(t => t.id === targetTabId);
+  state.openTabs.splice(newIndex, 0, draggedTab);
+
+  // 重新渲染标签栏
+  refreshTabBar();
+}
+
+// 刷新标签栏
+function refreshTabBar() {
+  // 刷新所有分组的标签栏
+  state.editorGroups.forEach(group => {
+    // 找到该分组的 tabs-bar
+    let tabsBar;
+    if (group.id === 'main') {
+      tabsBar = $('tabs-bar');
+    } else {
+      tabsBar = document.querySelector(`[data-group-tabs="${group.id}"]`);
+    }
+
+    if (!tabsBar) {
+      return;
+    }
+
+    // 清空标签栏
+    tabsBar.innerHTML = '';
+
+    // 渲染该分组的所有标签
+    const groupTabs = state.openTabs.filter(tab => {
+      // 检查标签是否属于该分组
+      const tabGroupId = tab.groupId || 'main';
+      return tabGroupId === group.id;
+    });
+
+    groupTabs.forEach(tab => {
+      renderTab(tab, group.id);
+    });
+  });
+}
+
+// ============ 分屏功能 ============
+
+// 分屏编辑器
+function splitEditor(direction, tabId = null) {
+  const editorGroups = $('editor-groups');
+  const currentTabId = tabId || state.activeTab;
+
+  // 创建新的分组
+  const newGroupId = 'group-' + Date.now();
+  const newGroup = { id: newGroupId, tabs: [] };
+  state.editorGroups.push(newGroup);
+
+  // 创建新的编辑器分组DOM
+  const newGroupEl = document.createElement('div');
+  newGroupEl.className = 'editor-group';
+  newGroupEl.dataset.groupId = newGroupId;
+
+  // 创建新分组的内容
+  newGroupEl.innerHTML = `
+    <div class="group-header">
+      <button class="group-close-btn" data-group-id="${newGroupId}" title="关闭此分屏">×</button>
+    </div>
+    <div class="tabs-bar" data-group-tabs="${newGroupId}"></div>
+    <div class="tab-contents" data-group-contents="${newGroupId}"></div>
+  `;
+
+  // 绑定关闭分组按钮事件
+  newGroupEl.querySelector('.group-close-btn').addEventListener('click', () => {
+    closeGroupById(newGroupId);
+  });
+
+  // 绑定分组的 drop 事件（允许拖拽到其他分屏）
+  newGroupEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  });
+  newGroupEl.addEventListener('drop', handleTabDrop);
+
+  // 为新建的 tabs-bar 添加事件
+  const newTabsBar = newGroupEl.querySelector('.tabs-bar');
+  if (newTabsBar) {
+    newTabsBar.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    newTabsBar.addEventListener('drop', handleTabDrop);
+  }
+
+  // 为新建的 tab-contents 添加事件
+  const newTabContents = newGroupEl.querySelector('.tab-contents');
+  if (newTabContents) {
+    newTabContents.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    newTabContents.addEventListener('drop', handleTabDrop);
+  }
+
+  // 添加分隔条
+  const handle = document.createElement('div');
+  handle.className = 'split-handle';
+  handle.dataset.prevGroup = state.activeGroup;
+  handle.dataset.nextGroup = newGroupId;
+
+  // 插入新分组
+  const lastGroup = editorGroups.lastElementChild;
+  if (direction === 'vertical') {
+    // 垂直分屏（左右）
+    editorGroups.insertBefore(handle, lastGroup);
+    editorGroups.insertBefore(newGroupEl, lastGroup);
+  } else {
+    // 水平分屏（上下）- 需要特殊处理
+    // 暂时使用左右分屏
+    editorGroups.insertBefore(handle, lastGroup);
+    editorGroups.insertBefore(newGroupEl, lastGroup);
+  }
+
+  // 激活新分组
+  state.activeGroup = newGroupId;
+
+  // 刷新标签栏
+  refreshTabBar();
+
+  // 初始化分隔条拖拽
+  initSplitHandle(handle);
+}
+
+// 从分组中移除标签
+function removeTabFromGroup(tabId) {
+  state.editorGroups.forEach(group => {
+    const index = group.tabs.indexOf(tabId);
+    if (index > -1) {
+      group.tabs.splice(index, 1);
+    }
+  });
+}
+
+// 将标签移动到指定分组
+function moveTabToGroup(tabId, groupId) {
+  // 找到标签
+  const tab = state.openTabs.find(t => t.id === tabId);
+  if (!tab) {
+    return;
+  }
+
+  // 更新标签的 groupId
+  tab.groupId = groupId;
+
+  // 从所有分组中移除
+  removeTabFromGroup(tabId);
+
+  // 添加到目标分组
+  const group = state.editorGroups.find(g => g.id === groupId);
+  if (group) {
+    group.tabs.push(tabId);
+  }
+
+  // 移动标签内容到正确的分屏
+  let targetTabContents;
+  if (groupId === 'main') {
+    targetTabContents = $('tab-contents');
+  } else {
+    targetTabContents = document.querySelector(`[data-group-contents="${groupId}"]`);
+  }
+
+  // 找到当前标签的内容并移动
+  const oldContent = document.querySelector(`.tab-content[data-tab-id="${tabId}"]`);
+  if (oldContent && targetTabContents) {
+    oldContent.dataset.groupId = groupId;
+    targetTabContents.appendChild(oldContent);
+  } else if (targetTabContents) {
+    // 如果没有内容，创建新的
+    if (tab.type === 'file') {
+      renderFileTabContent(tab, groupId);
+    } else if (tab.type === 'chat') {
+      renderChatTabContent(tab, groupId);
+    }
+  }
+
+  // 刷新标签栏显示
+  refreshTabBar();
+
+  // 激活该标签的显示
+  state.activeTab = tabId;
+  state.activeGroup = groupId;
+
+  // 更新标签激活状态
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tabId === tabId);
+  });
+
+  // 更新内容区激活状态 - 找到所有分组的 tab-content
+  document.querySelectorAll('.tab-content').forEach(c => {
+    c.classList.toggle('active', c.dataset.tabId === tabId);
+  });
+}
+
+// 刷新所有分组
+function refreshAllGroups() {
+  refreshTabBar();
+}
+
+// 初始化分隔条拖拽
+function initSplitHandle(handle) {
+  let startX, startWidth, prevGroup, nextGroup;
+
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    handle.classList.add('dragging');
+
+    startX = e.clientX;
+    prevGroup = handle.previousElementSibling;
+    nextGroup = handle.nextElementSibling;
+
+    if (prevGroup) {
+      startWidth = prevGroup.offsetWidth;
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+
+  function onMouseMove(e) {
+    if (!startWidth) return;
+
+    const diff = e.clientX - startX;
+    const newWidth = Math.max(200, startWidth + diff);
+
+    if (prevGroup) {
+      prevGroup.style.flex = `0 0 ${newWidth}px`;
+    }
+  }
+
+  function onMouseUp() {
+    handle.classList.remove('dragging');
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+}
+
+// 关闭分组
+function closeGroup(tabId) {
+  const editorGroups = $('editor-groups');
+  const groups = editorGroups.querySelectorAll('.editor-group');
+
+  // 至少保留一个分组
+  if (groups.length <= 1) {
+    return;
+  }
+
+  // 找到包含该标签的分组
+  let targetGroup = null;
+  let targetGroupEl = null;
+  let targetGroupId = null;
+
+  for (const group of state.editorGroups) {
+    if (group.tabs.includes(tabId)) {
+      targetGroup = group;
+      targetGroupId = group.id;
+      break;
+    }
+  }
+
+  // 如果没找到标签所属分组，尝试关闭当前激活的分组
+  if (!targetGroup) {
+    targetGroupId = state.activeGroup;
+    targetGroup = state.editorGroups.find(g => g.id === targetGroupId);
+  }
+
+  // 不能关闭主分组
+  if (targetGroupId === 'main') {
+    return;
+  }
+
+  // 找到分组对应的DOM元素
+  targetGroupEl = editorGroups.querySelector(`[data-group-id="${targetGroupId}"]`);
+
+  // 将该分组的标签移动到主分组
+  if (targetGroup && targetGroup.tabs.length > 0) {
+    targetGroup.tabs.forEach(tid => {
+      const tab = state.openTabs.find(t => t.id === tid);
+      if (tab) {
+        removeTabFromGroup(tid);
+        const mainGroup = state.editorGroups.find(g => g.id === 'main');
+        if (mainGroup) {
+          mainGroup.tabs.push(tid);
+        }
+      }
+    });
+    // 切换到第一个标签
+    if (targetGroup.tabs.length > 0) {
+      switchToTab(targetGroup.tabs[0]);
+    }
+  }
+
+  // 从状态中移除分组
+  state.editorGroups = state.editorGroups.filter(g => g.id !== targetGroupId);
+
+  // 从DOM中移除分组和分隔条
+  if (targetGroupEl) {
+    // 找到并移除相邻的分隔条
+    const handle = targetGroupEl.previousElementSibling;
+    if (handle && handle.classList.contains('split-handle')) {
+      handle.remove();
+    }
+    targetGroupEl.remove();
+  }
+
+  // 激活主分组
+  state.activeGroup = 'main';
+}
+
+// 根据分组ID关闭分组
+function closeGroupById(groupId) {
+  // 不能关闭主分组
+  if (groupId === 'main') {
+    return;
+  }
+
+  const editorGroups = $('editor-groups');
+  const groups = editorGroups.querySelectorAll('.editor-group');
+
+  // 至少保留一个分组
+  if (groups.length <= 1) {
+    return;
+  }
+
+  // 找到目标分组
+  const targetGroup = state.editorGroups.find(g => g.id === groupId);
+  if (!targetGroup) return;
+
+  const targetGroupEl = editorGroups.querySelector(`[data-group-id="${groupId}"]`);
+
+  // 将该分组的标签移动到主分组
+  if (targetGroup && targetGroup.tabs.length > 0) {
+    targetGroup.tabs.forEach(tid => {
+      const tab = state.openTabs.find(t => t.id === tid);
+      if (tab) {
+        removeTabFromGroup(tid);
+        const mainGroup = state.editorGroups.find(g => g.id === 'main');
+        if (mainGroup) {
+          mainGroup.tabs.push(tid);
+        }
+      }
+    });
+    // 切换到第一个标签
+    if (targetGroup.tabs.length > 0) {
+      switchToTab(targetGroup.tabs[0]);
+    }
+  }
+
+  // 从状态中移除分组
+  state.editorGroups = state.editorGroups.filter(g => g.id !== groupId);
+
+  // 从DOM中移除分组和分隔条
+  if (targetGroupEl) {
+    // 找到并移除相邻的分隔条
+    const handle = targetGroupEl.previousElementSibling;
+    if (handle && handle.classList.contains('split-handle')) {
+      handle.remove();
+    }
+    targetGroupEl.remove();
+  }
+
+  // 激活主分组
+  state.activeGroup = 'main';
+}
+
+// 渲染文件标签内容
+function renderFileTabContent(tab, groupId = 'main') {
+  // 根据 groupId 获取正确的 tabContents
+  let tabContents;
+  if (groupId === 'main') {
+    tabContents = $('tab-contents');
+  } else {
+    tabContents = document.querySelector(`[data-group-contents="${groupId}"]`);
+  }
+
+  if (!tabContents) return;
+
+  const contentEl = document.createElement('div');
+  contentEl.className = 'tab-content';
+  contentEl.dataset.tabId = tab.id;
+  contentEl.dataset.groupId = groupId;
+  contentEl.innerHTML = `
+    <div class="viewer-header">
+      <span class="viewer-title">${tab.name}</span>
+    </div>
+    <div class="viewer-content">
+      <div class="loading">加载中...</div>
+    </div>
+  `;
+  tabContents.appendChild(contentEl);
+
+  // 加载文件内容
+  apiRequest(`/api/files/read?path=${encodeURIComponent(tab.path)}`)
     .then(data => {
+      const viewerContent = contentEl.querySelector('.viewer-content');
       if (data.error) {
-        contentEl.innerHTML = `<div class="output-line error">${data.error}</div>`;
+        viewerContent.innerHTML = `<div class="output-line error">${data.error}</div>`;
       } else {
-        contentEl.innerHTML = `<div class="output-line">${escapeHtml(data.content || '')}</div>`;
+        viewerContent.innerHTML = `<div class="output-line">${escapeHtml(data.content || '')}</div>`;
       }
     })
     .catch(err => {
-      contentEl.innerHTML = `<div class="output-line error">读取失败: ${err.message}</div>`;
+      contentEl.querySelector('.viewer-content').innerHTML = `<div class="output-line error">读取失败: ${err.message}</div>`;
     });
 }
 
+// 渲染对话标签内容
+function renderChatTabContent(tab, groupId = 'main') {
+  // 根据 groupId 获取正确的 tabContents
+  let tabContents;
+  if (groupId === 'main') {
+    tabContents = $('tab-contents');
+  } else {
+    tabContents = document.querySelector(`[data-group-contents="${groupId}"]`);
+  }
+
+  if (!tabContents) return;
+
+  const contentEl = document.createElement('div');
+  contentEl.className = 'tab-content';
+  contentEl.dataset.tabId = tab.id;
+  contentEl.dataset.groupId = groupId;
+
+  // 复用现有的session-detail结构
+  contentEl.innerHTML = `
+    <div class="session-header">
+      <span class="session-title">活跃 Session</span>
+      <button class="icon-btn btn-refresh-sessions" title="刷新Session">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M13.65 2.35A8 8 0 1 0 16 8h-2a6 6 0 1 1-1.75-4.25L10 6h6V0l-2.35 2.35z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="session-list">
+      <div class="empty-state">
+        <p>加载中...</p>
+      </div>
+    </div>
+    <div class="session-detail">
+      <div class="detail-header">
+        <div class="session-info">
+          <span class="session-name">-</span>
+          <span class="session-status">空闲</span>
+        </div>
+        <div class="session-path">-</div>
+      </div>
+      <div class="work-output">
+        <div class="output-header"><span>当前工作</span></div>
+        <div class="output-content"><div class="output-line system">选择 Session 后查看工作状态</div></div>
+      </div>
+      <div class="chat-section">
+        <div class="chat-header">对话</div>
+        <div class="chat-messages"><div class="output-line system">选择 Session 开始对话</div></div>
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" placeholder="输入消息...">
+          <button class="btn-send">发送</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  tabContents.appendChild(contentEl);
+}
+
+// 切换到指定标签
+function switchToTab(tabId) {
+  state.activeTab = tabId;
+
+  // 更新标签栏激活状态
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tabId === tabId);
+  });
+
+  // 更新内容区激活状态
+  document.querySelectorAll('.tab-content').forEach(c => {
+    c.classList.toggle('active', c.dataset.tabId === tabId);
+  });
+}
+
+// 关闭标签
+function closeTab(tabId) {
+  const tabIndex = state.openTabs.findIndex(t => t.id === tabId);
+  if (tabIndex === -1) return;
+
+  // 移除标签和数据
+  state.openTabs.splice(tabIndex, 1);
+
+  // 移除DOM元素
+  document.querySelector(`.tab[data-tab-id="${tabId}"]`)?.remove();
+  document.querySelector(`.tab-content[data-tab-id="${tabId}"]`)?.remove();
+
+  // 如果关闭的是当前激活的标签，切换到其他标签
+  if (state.activeTab === tabId) {
+    if (state.openTabs.length > 0) {
+      // 切换到最后一个标签
+      switchToTab(state.openTabs[state.openTabs.length - 1].id);
+    } else {
+      // 显示欢迎页
+      state.activeTab = 'welcome';
+      switchToTab('welcome');
+    }
+  }
+}
+
+// 切换到欢迎页
+function switchToWelcome() {
+  state.activeTab = 'welcome';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  $('tab-content-welcome')?.classList.add('active');
+}
+
+// ============ 文件查看器（旧函数保留兼容性）============
+
+function openFileViewer(filePath, fileName) {
+  openFileTab(filePath, fileName);
+}
+
 function closeFileViewer() {
-  const viewer = $('file-viewer');
-  const noFileOpen = $('no-file-open');
-  viewer.classList.add('hidden');
-  noFileOpen.classList.remove('hidden');
+  if (state.activeTab !== 'welcome') {
+    closeTab(state.activeTab);
+  }
 }
 
 function escapeHtml(text) {
@@ -798,13 +1526,21 @@ function bindEvents() {
   // 刷新项目
   $('btn-refresh-projects')?.addEventListener('click', loadProjects);
 
-  // 刷新Session
+  // 刷新Session（全局）
   $('btn-refresh-sessions')?.addEventListener('click', loadSessions);
 
   // 文件操作
   $('btn-file-up')?.addEventListener('click', goUpDirectory);
   $('btn-file-refresh')?.addEventListener('click', () => loadFiles(state.currentFilePath));
-  $('btn-close-viewer')?.addEventListener('click', closeFileViewer);
+
+  // 欢迎页新对话按钮
+  $('btn-new-chat')?.addEventListener('click', () => {
+    // 切换到对话视图
+    document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-view="explorer"]')?.classList.add('active');
+    document.querySelectorAll('.sidebar-view').forEach(v => v.classList.remove('active'));
+    $('view-explorer')?.classList.add('active');
+  });
 
   // 终端
   $('btn-exec')?.addEventListener('click', execCommand);
@@ -813,7 +1549,7 @@ function bindEvents() {
     $('terminal-output').innerHTML = '<div class="output-line system">欢迎使用终端</div>';
   });
 
-  // 对话
+  // 对话发送
   $('btn-send')?.addEventListener('click', sendMessage);
   $('chat-input')?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -821,51 +1557,7 @@ function bindEvents() {
       sendMessage();
     }
   });
-
-  // 分割条拖动
-  initSplitDrag();
 }
-
-// ============ 分割条拖动 ============
-
-function initSplitDrag() {
-  const handle = $('split-handle');
-  const editorPane = document.querySelector('.editor-pane');
-  const chatPane = document.querySelector('.chat-pane');
-  if (!handle || !editorPane || !chatPane) return;
-
-  let isDragging = false;
-
-  handle.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-  });
-
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-
-    const container = document.querySelector('.editor-panel');
-    const containerRect = container.getBoundingClientRect();
-    const containerWidth = containerRect.width;
-    let newWidth = e.clientX - containerRect.left;
-
-    // 限制最小宽度
-    newWidth = Math.max(200, Math.min(containerWidth - 300, newWidth));
-
-    // 设置宽度
-    editorPane.style.flex = 'none';
-    editorPane.style.width = newWidth + 'px';
-    chatPane.style.flex = '1';
-  });
-
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  });
-}
-
 // ============ 初始化 ============
 
 async function init() {
@@ -874,9 +1566,48 @@ async function init() {
   bindEvents();
   loadProjects();
   loadSystemInfo();
+  initSplitHandles();
+  initEditorGroupDrops();
 
   setInterval(loadSystemInfo, 5000);
   setInterval(loadSessions, 3000);
+}
+
+// 初始化编辑组分组的 drop 事件
+function initEditorGroupDrops() {
+  // 为所有 editor-group 添加事件
+  document.querySelectorAll('.editor-group').forEach(group => {
+    group.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    group.addEventListener('drop', handleTabDrop);
+  });
+
+  // 为所有 tabs-bar 添加事件
+  document.querySelectorAll('.tabs-bar').forEach(tabsBar => {
+    tabsBar.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    tabsBar.addEventListener('drop', handleTabDrop);
+  });
+
+  // 为所有 tab-contents 添加事件
+  document.querySelectorAll('.tab-contents').forEach(contents => {
+    contents.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    contents.addEventListener('drop', handleTabDrop);
+  });
+}
+
+// 初始化所有分隔条
+function initSplitHandles() {
+  document.querySelectorAll('.split-handle').forEach(handle => {
+    initSplitHandle(handle);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);
