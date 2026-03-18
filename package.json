@@ -1,0 +1,19 @@
+{
+  "name": "remote-vscode",
+  "version": "1.0.0",
+  "description": "远程访问VS Code - 移动端查看电脑屏幕、文件、Claude对话",
+  "type": "module",
+  "scripts": {
+    "start": "node src/windows/index.js",
+    "start:desktop": "node src/windows/index.js",
+    "start:web": "npx serve ui"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "novnc": "^1.2.0",
+    "uuid": "^13.0.0",
+    "ws": "^8.14.2"
+  }
+}

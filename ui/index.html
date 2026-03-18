@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Remote VS Code</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部状态栏 -->
+    <header class="header">
+      <div class="header-left">
+        <span class="app-title">Remote VS Code</span>
+      </div>
+      <div class="header-right">
+        <span class="status" id="ws-status">
+          <span class="status-dot"></span>
+          未连接
+        </span>
+        <span class="system-info" id="system-info"></span>
+      </div>
+    </header>
+
+    <!-- 主内容区域 -->
+    <main class="main-container">
+      <!-- 左侧：活动栏 + 项目/文件列表 -->
+      <aside class="sidebar">
+        <!-- 活动栏图标 -->
+        <div class="activity-bar">
+          <button class="activity-btn active" data-view="projects" title="项目">
+            <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1.5 1h6l1 1H14l.5.5v4.5l-.5.5H10l-1 1v4l-1 1H2l-.5-.5v-11L1.5 1zm1 1v10h4v-3h2v3h4V3H7.5l-1-1H2.5z"/>
+            </svg>
+          </button>
+          <button class="activity-btn" data-view="files" title="文件">
+            <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1.5 1h5l1 1v4h3.5l-.5.5v8l.5.5h-10l-.5-.5v-13L1.5 1zm.5 1v12h9V5H4V2h5.5l.5-.5H2z"/>
+            </svg>
+          </button>
+          <button class="activity-btn" data-view="terminal" title="终端">
+            <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M6.5 1.5l-5 7 5 7M1 9.5h10.5"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 侧边面板容器 -->
+        <div class="sidebar-content">
+          <!-- 项目视图 -->
+          <div class="sidebar-view active" id="view-projects">
+            <div class="sidebar-header">
+              <span class="sidebar-title">项目</span>
+              <button class="icon-btn" id="btn-refresh-projects" title="刷新项目">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M13.65 2.35A8 8 0 1 0 16 8h-2a6 6 0 1 1-1.75-4.25L10 6h6V0l-2.35 2.35z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="project-list" id="project-list">
+              <div class="loading">加载中...</div>
+            </div>
+          </div>
+
+          <!-- 文件视图 -->
+          <div class="sidebar-view" id="view-files">
+            <div class="sidebar-header">
+              <span class="sidebar-title">文件</span>
+              <div class="file-toolbar">
+                <button class="icon-btn" id="btn-file-up" title="返回上级">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 1l4 5H4l4-5z"/>
+                  </svg>
+                </button>
+                <button class="icon-btn" id="btn-file-refresh" title="刷新">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M13.65 2.35A8 8 0 1 0 16 8h-2a6 6 0 1 1-1.75-4.25L10 6h6V0l-2.35 2.35z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="file-path" id="current-path"></div>
+            <div class="file-list" id="file-list">
+              <div class="loading">选择项目查看文件</div>
+            </div>
+          </div>
+
+          <!-- 终端视图 -->
+          <div class="sidebar-view" id="view-terminal">
+            <div class="sidebar-header">
+              <span class="sidebar-title">终端</span>
+              <button class="icon-btn" id="btn-clear-terminal" title="清空">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5"/>
+                </svg>
+              </button>
+            </div>
+            <div class="terminal-input-area">
+              <input type="text" class="cmd-input" id="cmd-input" placeholder="输入命令...">
+              <button class="btn-small btn-primary" id="btn-exec">执行</button>
+            </div>
+            <div class="terminal-output" id="terminal-output">
+              <div class="output-line system">欢迎使用终端</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 中间：编辑器 + Claude 对话（并排显示） -->
+      <section class="editor-panel">
+        <!-- 左侧：文件编辑器 -->
+        <div class="editor-pane">
+          <div class="pane-header">
+            <span class="pane-title">编辑器</span>
+          </div>
+          <div class="file-viewer hidden" id="file-viewer">
+            <div class="viewer-header">
+              <span class="viewer-title" id="viewer-filename">文件内容</span>
+              <button class="icon-btn" id="btn-close-viewer" title="关闭">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M4 4l8 8M12 4l-8 8"/>
+                </svg>
+              </button>
+            </div>
+            <div class="viewer-content" id="viewer-content">
+              <div class="output-line system">点击左侧文件查看内容</div>
+            </div>
+          </div>
+          <div class="no-file-open" id="no-file-open">
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <p>未打开文件</p>
+              <span>点击左侧文件查看内容</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分隔条 -->
+        <div class="split-handle" id="split-handle"></div>
+
+        <!-- 右侧：Claude 对话 -->
+        <div class="chat-pane">
+          <div class="pane-header">
+            <span class="pane-title">Claude 对话</span>
+          </div>
+
+          <!-- Session列表 -->
+          <div class="session-header">
+            <span class="session-title">活跃 Session</span>
+            <button class="icon-btn" id="btn-refresh-sessions" title="刷新Session">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M13.65 2.35A8 8 0 1 0 16 8h-2a6 6 0 1 1-1.75-4.25L10 6h6V0l-2.35 2.35z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="session-list" id="session-list">
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              <p>暂无活跃 Session</p>
+              <span>选择左侧项目开始</span>
+            </div>
+          </div>
+
+          <!-- Session详情和对话 -->
+          <div class="session-detail">
+            <div class="detail-header">
+              <div class="session-info">
+                <span class="session-name" id="current-session-name">-</span>
+                <span class="session-status" id="current-session-status">空闲</span>
+              </div>
+              <div class="session-path" id="current-session-path">-</div>
+            </div>
+
+            <!-- 工作输出区域 -->
+            <div class="work-output">
+              <div class="output-header">
+                <span>当前工作</span>
+              </div>
+              <div class="output-content" id="session-output">
+                <div class="output-line system">选择 Session 后查看工作状态</div>
+              </div>
+            </div>
+
+            <!-- 对话区域 -->
+            <div class="chat-section">
+              <div class="chat-header">对话</div>
+              <div class="chat-messages" id="chat-messages">
+                <div class="output-line system">选择 Session 开始对话</div>
+              </div>
+              <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chat-input" placeholder="输入消息...">
+                <button class="btn-send" id="btn-send">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11zM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07zm6.787-8.201L1.591 6.602l4.339 2.76 7.493-7.493z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

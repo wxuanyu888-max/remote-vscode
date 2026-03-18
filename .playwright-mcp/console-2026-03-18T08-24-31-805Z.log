@@ -1,0 +1,209 @@
+[      26ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  153459ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  153461ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  421216ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  421218ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  423565ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  423565ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  425433ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  425434ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  426552ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  426554ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  426555ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  426584ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  426584ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  427416ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  427417ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  431447ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  431447ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  431686ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  431693ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  431922ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  431942ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  431944ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  432465ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  432465ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  437048ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  437051ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  437052ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  437053ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  437333ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  437432ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  437433ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  440423ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  440424ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  440691ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  440696ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  442398ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  442398ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  442420ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  442420ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  442697ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  446061ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  446064ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  446065ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  446065ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  446437ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  446438ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  447442ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  447442ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  448065ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  449434ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  449437ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  451449ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  451449ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  451451ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  451452ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  453483ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  454814ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  454818ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  454818ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  454819ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  455433ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  455433ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  457449ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  457450ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  458430ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  458438ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  458855ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  460169ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  460169ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  460171ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  460172ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  462413ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  462415ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  463799ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  463799ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  464229ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  467461ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  467462ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  467464ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  467466ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  467728ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  467729ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  469624ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  470442ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  470443ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  470712ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  470713ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  472415ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  472417ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  473093ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  473093ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  475046ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  476465ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  476465ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  476702ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  476703ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  477430ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  477432ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  477781ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  477781ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  480467ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  482425ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  482425ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  482430ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  482431ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  482699ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  482701ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  485434ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  485434ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  485687ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  485687ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSystemInfo (http://localhost:3000/js/app.js:787:24) @ http://localhost:3000/js/app.js:33
+[  485995ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/app.js:44
+[  487419ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  487436ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[  488042ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  488043ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[  594251ms] [ERROR] SSE error: Event @ http://localhost:3000/js/app.js:401
+[  594261ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/api/chat/stream/c50a2838-d2fa-4d98-8919-1fcca7f4f4bc?projectId=C----Users--29718--remote-vscode:0
+[ 3960297ms] [ERROR] Failed to load resource: net::ERR_NETWORK_CHANGED @ http://localhost:3000/api/chat/sessions:0
+[ 3960297ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[ 4095353ms] [ERROR] Failed to load resource: net::ERR_NETWORK_CHANGED @ http://localhost:3000/api/chat/sessions:0
+[ 4095357ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[ 6840360ms] [ERROR] Failed to load resource: net::ERR_NETWORK_CHANGED @ http://localhost:3000/api/chat/sessions:0
+[ 6840360ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
+[ 6861430ms] [ERROR] Failed to load resource: net::ERR_NETWORK_CHANGED @ http://localhost:3000/api/chat/sessions:0
+[ 6861430ms] [ERROR] API Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/app.js:28:28)
+    at loadSessions (http://localhost:3000/js/app.js:288:24) @ http://localhost:3000/js/app.js:33
