@@ -1,0 +1,105 @@
+[     363ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[     364ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[     390ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0
+[    5333ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[    5333ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   10334ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   10335ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   15340ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   15341ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   20348ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   20349ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   25335ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   25335ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   30341ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   30341ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   35336ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   35336ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   40337ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   40338ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   45345ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   45345ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   50335ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   50335ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   55336ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   55336ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   60336ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   60336ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   65346ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   65346ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   70337ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   70338ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   75347ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   75347ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   80346ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   80346ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   85353ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   85356ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   90336ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   90337ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[   95336ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[   95338ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[  100347ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[  100347ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[  105359ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[  105359ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[  110350ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[  110354ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[  115336ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[  115336ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[  120369ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[  120369ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101
+[  125345ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/system/info:0
+[  125345ms] [ERROR] 获取系统信息失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:17:11)
+    at async loadSystemInfo (http://localhost:3000/js/app.js:94:18) @ http://localhost:3000/js/app.js:101

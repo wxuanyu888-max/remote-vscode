@@ -1,0 +1,37 @@
+/* CSS Variables - 主题变量 */
+:root {
+  /* VS风格白色主题 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f3f3;
+  --bg-tertiary: #e8e8e8;
+  --bg-sidebar: #f3f3f3;
+  --bg-header: #ffffff;
+  --bg-input: #ffffff;
+  --bg-output: #ffffff;
+
+  /* 边框和分割线 */
+  --border-color: #e0e0e0;
+  --border-focus: #0078d4;
+
+  /* 文字颜色 */
+  --text-primary: #1e1e1e;
+  --text-secondary: #616161;
+  --text-muted: #8c8c8c;
+  --text-inverse: #ffffff;
+
+  /* 主题色 - VS蓝 */
+  --primary: #0078d4;
+  --primary-hover: #106ebe;
+  --primary-active: #005a9e;
+
+  /* 状态颜色 */
+  --success: #107c10;
+  --error: #e81123;
+  --warning: #ca5010;
+  --info: #0078d4;
+
+  /* 活动指示器 */
+  --status-active: #6bb700;
+  --status-idle: #8c8c8c;
+  --status-error: #e81123;
+}

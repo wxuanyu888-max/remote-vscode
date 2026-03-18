@@ -60,17 +60,26 @@ router.get('/sessions', async (req, res) => {
   const projectsDir = getClaudeProjectsDir();
   const sessions = [];
 
-  // 判断 session 是否正在运行：优先使用 activeSessionId，其次检查文件修改时间
+  // 判断 session 是否正在运行：检查文件是否在最近 90 秒内被修改
   const isWorking = (sessionIdFromFile, stat) => {
     // 如果这个 session 正是当前正在处理的，直接返回 working
     if (activeSessionId && sessionIdFromFile === activeSessionId) {
       return true;
     }
-    // 否则检查文件是否最近被修改
-    const now = Date.now();
+
+    // 直接用文件时间戳（已是 UTC 转换后的值）和当前时间比较
+    // stat.mtime 是一个 Date 对象
+    const nowMs = Date.now();
     const mtimeMs = stat.mtime.getTime();
-    const diff = now - mtimeMs;
-    return diff < 60000; // 60 秒内修改过
+
+    // 计算差值（毫秒）
+    const diffMs = nowMs - mtimeMs;
+
+    // 调试日志
+    console.log(`[isWorking] session=${sessionIdFromFile.substring(0,8)}, now=${nowMs}, mtime=${mtimeMs}, diff=${diffMs}ms`);
+
+    // 如果文件在最近 90 秒内被修改，认为是工作中
+    return diffMs < 90000;
   };
 
   try {

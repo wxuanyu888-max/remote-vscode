@@ -1,0 +1,58 @@
+/* Header - 顶部状态栏 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 16px;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  height: 35px;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.app-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  -webkit-app-region: no-drag;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-idle);
+}
+
+.status.connected .status-dot {
+  background: var(--status-active);
+}
+
+.status.disconnected .status-dot {
+  background: var(--status-error);
+}
+
+.system-info {
+  font-size: 11px;
+  color: var(--text-muted);
+}

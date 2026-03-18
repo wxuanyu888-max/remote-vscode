@@ -8,3 +8,6 @@
 [      20ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
     at apiRequest (http://localhost:3000/js/app.js:34:28)
     at loadSessions (http://localhost:3000/js/app.js:289:24) @ http://localhost:3000/js/app.js:300
+[  738707ms] Identifier 'removeTabFromGroup' has already been declared
+[  819458ms] Identifier 'removeTabFromGroup' has already been declared
+[  877625ms] Identifier 'removeTabFromGroup' has already been declared

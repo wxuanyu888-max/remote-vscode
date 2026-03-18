@@ -1,0 +1,10 @@
+[      15ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:102
+[      15ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:8:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:94:24) @ http://localhost:3000/js/app.js:101
+[ 1270061ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/files/read?path=C%3A%5CUsers%5C29718%5Cremote-vscode%5Cundefined&root=C%3A%5CUsers%5C29718%5Cremote-vscode:0
+[ 1385429ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:102
+[ 1385429ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:8:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:94:24) @ http://localhost:3000/js/app.js:101
+[ 1386632ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/files/read?path=C%3A%5CUsers%5C29718%5Cremote-vscode%5Cundefined&root=C%3A%5CUsers%5C29718%5Cremote-vscode:0

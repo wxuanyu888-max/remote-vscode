@@ -1,0 +1,294 @@
+/* Editor - 编辑器区域 */
+.editor-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+/* 编辑器分组容器 */
+.editor-groups {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* 单个编辑器分组 */
+.editor-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 200px;
+  position: relative;
+}
+
+.editor-group:not(:last-child) {
+  border-right: 1px solid var(--border-color);
+}
+
+/* 分组标题栏 */
+.editor-group .group-header {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  padding: 4px;
+}
+
+.editor-group:not(:first-child) .group-header {
+  display: block;
+}
+
+.group-close-btn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.group-close-btn:hover {
+  background: var(--error);
+  color: white;
+}
+
+/* 分隔条 */
+.split-handle {
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.split-handle:hover,
+.split-handle.dragging {
+  background: var(--primary);
+}
+
+/* 水平分屏的分隔条 */
+.split-handle-horizontal {
+  height: 4px;
+  width: 100%;
+  cursor: row-resize;
+}
+
+/* 标签栏 */
+.tabs-bar {
+  display: flex;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.tabs-bar::-webkit-scrollbar {
+  height: 3px;
+}
+
+.tabs-bar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.tab:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.tab.active {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--primary);
+  margin-bottom: -1px;
+}
+
+/* 标签拖拽样式 */
+.tab.dragging {
+  opacity: 0.5;
+}
+
+.tab.drag-over {
+  background: var(--bg-tertiary);
+  border-bottom: 2px dashed var(--primary);
+}
+
+/* 拖拽指示器 */
+.drag-indicator {
+  position: absolute;
+  width: 2px;
+  background: var(--primary);
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* 分屏按钮 */
+.tab-actions {
+  display: none;
+  gap: 2px;
+  margin-left: auto;
+  padding-right: 4px;
+}
+
+.tab:hover .tab-actions {
+  display: flex;
+}
+
+.split-btn, .close-btn {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.split-btn:hover, .close-btn:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* 分屏菜单 */
+.split-menu {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  min-width: 120px;
+}
+
+.split-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-primary);
+  transition: background 0.15s;
+}
+
+.split-menu-item:hover {
+  background: var(--bg-secondary);
+}
+
+.split-menu-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
+}
+
+.tab-icon {
+  margin-right: 6px;
+  font-size: 14px;
+}
+
+.tab-close {
+  margin-left: 8px;
+  padding: 2px;
+  border-radius: 3px;
+  opacity: 0.6;
+  transition: all 0.15s;
+}
+
+.tab-close:hover {
+  opacity: 1;
+  background: var(--bg-hover);
+}
+
+.tab-contents {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tab-content.active {
+  display: flex;
+}
+
+/* 文件查看器 */
+.file-viewer {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  flex: 1;
+  overflow: hidden;
+}
+
+.file-viewer.hidden {
+  display: none;
+}
+
+.viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.viewer-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viewer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--bg-output);
+  color: var(--text-primary);
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
