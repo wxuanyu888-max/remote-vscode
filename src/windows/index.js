@@ -28,6 +28,17 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// API 路由（必须在静态文件之前）
+app.use('/api/files', filesRouter);
+app.use('/api/projects', projectsRouter);
+app.use('/api/chat', chatRouter);
+app.use('/api/terminal', terminalRouter);
+app.use('/api/watcher', watcherRouter);
+app.use('/api/process', processRouter);
+
+// UI 静态文件（必须在API路由之后）
+app.use(express.static(path.join(__dirname, '../../ui')));
+
 // 获取本机IP
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
@@ -43,14 +54,6 @@ function getLocalIP() {
 
 // UI 静态文件
 app.use(express.static(path.join(__dirname, '../../ui')));
-
-// API 路由
-app.use('/api/files', filesRouter);
-app.use('/api/projects', projectsRouter);
-app.use('/api/chat', chatRouter);
-app.use('/api/terminal', terminalRouter);
-app.use('/api/watcher', watcherRouter);
-app.use('/api/process', processRouter);
 
 // 根路径返回服务信息
 app.get('/', (req, res) => {

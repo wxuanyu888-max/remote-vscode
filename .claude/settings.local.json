@@ -194,7 +194,19 @@
       "Bash(sleep 2 && curl -s http://localhost:3000 | head -5)",
       "Bash(curl -s -X POST http://localhost:3000/api/chat/send -H \"Content-Type: application/json\" -d '{\"sessionId\":\"test-session-123\",\"message\":\"hello test\"}' 2>&1)",
       "Bash(sleep 3 && curl -s http://localhost:3000 | head -3)",
-      "Bash(curl -s http://localhost:3000/api/chat/health)"
+      "Bash(curl -s http://localhost:3000/api/chat/health)",
+      "Bash(curl -s -X POST http://localhost:3000/api/chat/sessions -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(taskkill /F /IM node.exe 2>/dev/null; sleep 2)",
+      "Bash(curl -s http://localhost:3000/api/ 2>&1 | head -20)",
+      "Bash(tasklist | findstr node)",
+      "Bash(curl -v -X POST http://localhost:3000/api/chat/sessions -H \"Content-Type: application/json\" -d '{}' 2>&1 | head -50)",
+      "Bash(curl -v http://localhost:3000/api/chat/health 2>&1)",
+      "Bash(taskkill /PID 4988 /F 2>&1 || true)",
+      "Bash(taskkill //PID 4988 //F 2>&1)",
+      "Bash(sleep 2 && curl -X POST http://localhost:3000/api/chat/sessions -H \"Content-Type: application/json\" -d '{}' 2>&1)",
+      "Bash(curl http://localhost:3000/api/chat/sessions 2>&1)",
+      "Bash(cd C:/Users/29718/remote-vscode && npm run start:web)",
+      "Bash(tasklist | grep -i \"node\" | head -5)"
     ]
   }
 }

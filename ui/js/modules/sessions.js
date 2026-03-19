@@ -2,6 +2,9 @@
 import { state, $ } from './state.js';
 import { apiRequest } from './api.js';
 
+// 右键菜单相关变量
+let contextMenuSessionId = null;
+
 // 加载并显示 session 历史消息
 async function loadSessionHistory(sessionId, maxLength = 5000) {
   try {
@@ -117,6 +120,111 @@ export function renderSessions() {
       selectSession(sessionId);
     }
   };
+
+  // 添加右键菜单
+  setupContextMenu(sessionSelect);
+}
+
+// 右键菜单
+function setupContextMenu(sessionSelect) {
+  // 移除已存在的菜单
+  const existingMenu = document.getElementById('session-context-menu');
+  if (existingMenu) existingMenu.remove();
+
+  sessionSelect.oncontextmenu = (e) => {
+    e.preventDefault();
+    const sessionId = sessionSelect.value;
+    if (!sessionId || sessionId === 'new') return;
+
+    contextMenuSessionId = sessionId;
+
+    // 创建菜单
+    const menu = document.createElement('div');
+    menu.id = 'session-context-menu';
+    menu.style.cssText = `
+      position: fixed;
+      left: ${e.clientX}px;
+      top: ${e.clientY}px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 10000;
+      min-width: 120px;
+    `;
+
+    const renameBtn = document.createElement('div');
+    renameBtn.textContent = '重命名';
+    renameBtn.style.cssText = 'padding: 8px 16px; cursor: pointer;';
+    renameBtn.onmouseenter = () => renameBtn.style.background = '#f0f0f0';
+    renameBtn.onmouseleave = () => renameBtn.style.background = 'white';
+    renameBtn.onclick = () => {
+      menu.remove();
+      handleRenameSession(sessionId);
+    };
+
+    const deleteBtn = document.createElement('div');
+    deleteBtn.textContent = '删除';
+    deleteBtn.style.cssText = 'padding: 8px 16px; cursor: pointer; color: #d32f2f;';
+    deleteBtn.onmouseenter = () => deleteBtn.style.background = '#f0f0f0';
+    deleteBtn.onmouseleave = () => deleteBtn.style.background = 'white';
+    deleteBtn.onclick = () => {
+      menu.remove();
+      handleDeleteSession(sessionId);
+    };
+
+    menu.appendChild(renameBtn);
+    menu.appendChild(deleteBtn);
+    document.body.appendChild(menu);
+
+    // 点击其他地方关闭菜单
+    const closeMenu = (evt) => {
+      if (!menu.contains(evt.target)) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeMenu), 0);
+  };
+}
+
+// 重命名session
+async function handleRenameSession(sessionId) {
+  const session = state.sessions.find(s => (s.id || s.sessionId) === sessionId);
+  const currentName = session?.name || '';
+
+  const newName = prompt('请输入新名称:', currentName);
+  if (!newName || newName === currentName) return;
+
+  try {
+    await apiRequest(`/api/chat/session/${sessionId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name: newName })
+    });
+    loadSessions();
+  } catch (error) {
+    alert('重命名失败: ' + error.message);
+  }
+}
+
+// 删除session
+async function handleDeleteSession(sessionId) {
+  if (!confirm('确定要删除这个会话吗？此操作不可恢复。')) return;
+
+  try {
+    await apiRequest(`/api/chat/session/${sessionId}`, {
+      method: 'DELETE'
+    });
+
+    // 如果删除的是当前选中的session，清除选中状态
+    if (state.currentSession === sessionId) {
+      state.currentSession = null;
+    }
+
+    loadSessions();
+  } catch (error) {
+    alert('删除失败: ' + error.message);
+  }
 }
 
 function formatTimeAgo(timestamp) {
@@ -222,13 +330,16 @@ export async function selectSession(sessionId) {
             // 工具结果
             const text = extractText(msg.toolUseResult);
             if (text) {
-              addMessage(chatMessages, `[结果] ${text.substring(0, 500)}`, 'tool-result');
+              addMessage(chatMessages, `[结果] ${text.substring(0, 1000)}`, 'tool-result');
             }
           }
         } catch (e) {
-          // 非 JSON 行直接显示
-          if (line.trim() && line.trim().length < 500) {
-            addMessage(chatMessages, line.trim(), '');
+          // 非 JSON 行直接显示，但过滤掉元数据行
+          const trimmed = line.trim();
+          if (trimmed && trimmed.length < 500 &&
+              !trimmed.includes('"version"') && !trimmed.includes('"gitBranch"') &&
+              !trimmed.includes('"retryAttempt"') && !trimmed.includes('"cwd"') && !trimmed.includes('"sessionId"')) {
+            addMessage(chatMessages, trimmed, '');
           }
         }
       });
@@ -266,7 +377,7 @@ function addMessage(container, text, type) {
   if (!text || !text.trim()) return;
   const lineEl = document.createElement('div');
   lineEl.className = 'output-line ' + type;
-  const truncatedText = text.substring(0, 3000);
+  const truncatedText = text.substring(0, 1000);
 
   if (type === 'stdout') {
     // stdout 使用 Markdown 渲染，前面加 ●
@@ -330,12 +441,83 @@ export function connectSessionStream(sessionId) {
 }
 
 function handleStreamMessage(data) {
+  // SSE 的 update 类型消息（轮询文件变化）
+  if (data.type === 'update' && data.messages) {
+    const msgSessionId = data.sessionId || state.currentSession;
+
+    let output = null;
+    if (msgSessionId) {
+      const tab = state.openTabs.find(t => t.sessionId === msgSessionId && t.type === 'chat');
+      if (tab) {
+        output = document.querySelector(`#chat-messages-${tab.id}`);
+      }
+    }
+    if (!output) {
+      output = $('chat-messages');
+    }
+    if (!output) return;
+
+    // 解析并显示消息
+    for (const msg of data.messages) {
+      if (msg.raw) {
+        // 跳过包含元数据字段的 JSON 字符串（如 version, gitBranch, retryAttempt 等）
+        if (msg.raw.includes('"version"') && msg.raw.includes('"gitBranch"') ||
+            msg.raw.includes('"retryAttempt"') || msg.raw.includes('"sessionId"') && msg.raw.includes('"cwd"')) {
+          continue;
+        }
+        // 非 JSON 纯文本
+        const line = document.createElement('div');
+        line.className = 'output-line stdout';
+        line.textContent = msg.raw;
+        output.appendChild(line);
+      } else if (msg.message?.content || msg.content) {
+        // 结构化消息
+        const content = msg.message?.content || msg.content;
+        const role = msg.message?.role || msg.type;
+
+        // 直接内联提取文本的逻辑
+        let textContent = '';
+        if (typeof content === 'string') {
+          textContent = content;
+        } else if (Array.isArray(content)) {
+          const filtered = content.filter(c => c.type !== 'thinking');
+          textContent = filtered.map(c => {
+            if (c.type === 'text') return c.text || '';
+            if (c.type === 'tool_use') return `[Edit] ${c.name}`;
+            if (c.type === 'tool_result') return c.content || '';
+            return '';
+          }).join('');
+        } else if (content.text) {
+          textContent = content.text;
+        } else {
+          textContent = JSON.stringify(content).substring(0, 1000);
+        }
+
+        if (role === 'user') {
+          const line = document.createElement('div');
+          line.className = 'output-line input';
+          line.textContent = textContent;
+          output.appendChild(line);
+        } else {
+          const line = document.createElement('div');
+          line.className = 'output-line stdout';
+          line.textContent = textContent;
+          output.appendChild(line);
+        }
+      }
+    }
+    output.scrollTop = output.scrollHeight;
+    return;
+  }
+
   if (data.type === 'content' || data.type === 'message') {
     let output = null;
 
-    // 优先查找当前 session 对应的标签页
-    if (state.currentSession) {
-      const tab = state.openTabs.find(t => t.sessionId === state.currentSession && t.type === 'chat');
+    // 优先使用消息中的 sessionId 查找对应标签页
+    const msgSessionId = data.sessionId || state.currentSession;
+
+    if (msgSessionId) {
+      const tab = state.openTabs.find(t => t.sessionId === msgSessionId && t.type === 'chat');
       if (tab) {
         output = document.querySelector(`#chat-messages-${tab.id}`);
       }
@@ -378,8 +560,10 @@ function handleStreamMessage(data) {
   } else if (data.type === 'error') {
     let output = null;
 
-    if (state.currentSession) {
-      const tab = state.openTabs.find(t => t.sessionId === state.currentSession && t.type === 'chat');
+    const msgSessionId = data.sessionId || state.currentSession;
+
+    if (msgSessionId) {
+      const tab = state.openTabs.find(t => t.sessionId === msgSessionId && t.type === 'chat');
       if (tab) {
         output = document.querySelector(`#chat-messages-${tab.id}`);
       }

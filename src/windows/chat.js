@@ -15,8 +15,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const router = express.Router();
-router.use(cors());
-router.use(express.json());
 
 // 当前活跃的 Claude 进程
 let activeProcess = null;
@@ -232,6 +230,105 @@ router.get('/session/:id', async (req, res) => {
       path: sessionFile,
       content: content.slice(-10000)  // 最近 10KB
     });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 查找session文件路径的辅助函数
+function findSessionFile(sessionId, projectsDir) {
+  if (!fs.existsSync(projectsDir)) return null;
+
+  const entries = fs.readdirSync(projectsDir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const filePath = path.join(projectsDir, entry.name, `${sessionId}.jsonl`);
+      if (fs.existsSync(filePath)) {
+        return { filePath, projectId: entry.name };
+      }
+    }
+  }
+  return null;
+}
+
+// 重命名session
+router.put('/session/:id', async (req, res) => {
+  const { name } = req.body;
+  const { projectId } = req.query;
+  const projectsDir = getClaudeProjectsDir();
+
+  if (!name) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+
+  try {
+    let sessionInfo;
+
+    if (projectId) {
+      const projectDir = path.join(projectsDir, projectId);
+      const filePath = path.join(projectDir, `${req.params.id}.jsonl`);
+      if (fs.existsSync(filePath)) {
+        sessionInfo = { filePath, projectId };
+      }
+    }
+
+    if (!sessionInfo) {
+      sessionInfo = findSessionFile(req.params.id, projectsDir);
+    }
+
+    if (!sessionInfo) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    // 重命名：在jsonl文件所在目录创建.name文件存储新名称
+    const nameFile = sessionInfo.filePath.replace('.jsonl', '.name');
+    fs.writeFileSync(nameFile, name, 'utf8');
+
+    console.log(`[renameSession] Renamed session ${req.params.id} to "${name}"`);
+
+    res.json({ success: true, name });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// 删除session
+router.delete('/session/:id', async (req, res) => {
+  const { projectId } = req.query;
+  const projectsDir = getClaudeProjectsDir();
+
+  try {
+    let sessionFile;
+
+    if (projectId) {
+      const projectDir = path.join(projectsDir, projectId);
+      const filePath = path.join(projectDir, `${req.params.id}.jsonl`);
+      if (fs.existsSync(filePath)) {
+        sessionFile = filePath;
+      }
+    }
+
+    if (!sessionFile) {
+      const sessionInfo = findSessionFile(req.params.id, projectsDir);
+      if (sessionInfo) {
+        sessionFile = sessionInfo.filePath;
+      }
+    }
+
+    if (!sessionFile) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    // 删除jsonl文件和name文件
+    fs.unlinkSync(sessionFile);
+    const nameFile = sessionFile.replace('.jsonl', '.name');
+    if (fs.existsSync(nameFile)) {
+      fs.unlinkSync(nameFile);
+    }
+
+    console.log(`[deleteSession] Deleted session ${req.params.id}`);
+
+    res.json({ success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
