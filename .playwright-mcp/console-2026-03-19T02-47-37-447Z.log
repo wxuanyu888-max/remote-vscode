@@ -1,0 +1,2 @@
+[     373ms] Identifier 'isMarkdown' has already been declared
+[     378ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0

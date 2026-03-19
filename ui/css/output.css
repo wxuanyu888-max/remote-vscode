@@ -42,6 +42,73 @@
 
 .output-line.stdout {
   color: #1e1e1e;
+  display: flex;
+  align-items: flex-start;
+}
+
+.output-line.stdout .msg-bullet {
+  color: #666;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.output-line.stdout .msg-text {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: #1e1e1e;
+}
+
+/* Markdown 样式 */
+.output-line.stdout .msg-text h1,
+.output-line.stdout .msg-text h2,
+.output-line.stdout .msg-text h3 {
+  margin: 4px 0 2px;
+  font-weight: 600;
+}
+
+.output-line.stdout .msg-text h1 { font-size: 1.3em; }
+.output-line.stdout .msg-text h2 { font-size: 1.1em; }
+.output-line.stdout .msg-text h3 { font-size: 1em; }
+
+.output-line.stdout .msg-text p {
+  margin: 2px 0;
+}
+
+.output-line.stdout .msg-text code {
+  background: rgba(0,0,0,0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.9em;
+}
+
+.output-line.stdout .msg-text pre {
+  background: rgba(0,0,0,0.1);
+  padding: 4px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 2px 0;
+}
+
+.output-line.stdout .msg-text pre code {
+  background: none;
+  padding: 0;
+}
+
+.output-line.stdout .msg-text ul,
+.output-line.stdout .msg-text ol {
+  padding-left: 20px;
+  margin: 2px 0;
+}
+
+.output-line.stdout .msg-text li {
+  margin: 2px 0;
+}
+
+.output-line.stdout .msg-text a {
+  color: #1e1e1e;
+  text-decoration: underline;
 }
 
 .output-line.stderr {
@@ -124,9 +191,17 @@
 }
 
 .output-line.tool-use {
+  background: transparent;
   color: #6a9955;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
+  font-weight: bold;
+}
+
+.output-line.tool-use .tool-name {
+  background: transparent;
+  color: #6a9955;
+  font-weight: bold;
 }
 
 .output-line.tool-result {

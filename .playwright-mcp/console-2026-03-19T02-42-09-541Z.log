@@ -1,0 +1,7 @@
+[     409ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0
+[   65708ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:154
+[   65708ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:9:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:106:24) @ http://localhost:3000/js/app.js:113
+[   65761ms] TypeError: Cannot read properties of undefined (reading 'id')
+    at selectSession (http://localhost:3000/js/modules/sessions.js:144:68)

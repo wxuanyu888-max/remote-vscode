@@ -1,0 +1,9 @@
+[      13ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:313
+[      13ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:9:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:125:24) @ http://localhost:3000/js/app.js:132
+[  158894ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:314
+[  269559ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:314
+[  269559ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:9:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:125:24) @ http://localhost:3000/js/app.js:132

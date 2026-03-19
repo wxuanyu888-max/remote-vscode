@@ -23,7 +23,7 @@ let activeProcess = null;
 let activeSessionId = null; // 当前正在处理的 session
 
 // 广播消息
-function broadcastClaude(type, data) {
+function broadcastClaude(type, data, sessionId = null) {
   if (!global.claudeWSS) {
     console.log('[Broadcast] No WebSocket server');
     return;
@@ -32,7 +32,7 @@ function broadcastClaude(type, data) {
   const clientCount = global.claudeWSS.clients.size;
   console.log(`[Broadcast] Sending ${type} to ${clientCount} clients`);
 
-  const message = JSON.stringify({ type, data, timestamp: Date.now() });
+  const message = JSON.stringify({ type, data, sessionId, timestamp: Date.now() });
   global.claudeWSS.clients.forEach(client => {
     if (client.readyState === 1) {
       client.send(message);
@@ -146,6 +146,47 @@ router.get('/sessions', async (req, res) => {
   }
 });
 
+// 创建新会话
+router.post('/sessions', async (req, res) => {
+  const { projectId } = req.body;
+  const projectsDir = getClaudeProjectsDir();
+
+  try {
+    let targetDir;
+
+    if (projectId) {
+      targetDir = path.join(projectsDir, projectId);
+    } else {
+      // 默认使用第一个项目目录
+      if (fs.existsSync(projectsDir)) {
+        const entries = fs.readdirSync(projectsDir, { withFileTypes: true });
+        const firstProject = entries.find(e => e.isDirectory());
+        if (firstProject) {
+          targetDir = path.join(projectsDir, firstProject.name);
+        }
+      }
+    }
+
+    if (!targetDir || !fs.existsSync(targetDir)) {
+      return res.status(400).json({ error: 'No project directory found' });
+    }
+
+    // 生成新的 session ID
+    const sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+    const filePath = path.join(targetDir, `${sessionId}.jsonl`);
+
+    // 创建空的 session 文件
+    fs.writeFileSync(filePath, '', 'utf8');
+
+    console.log(`[createSession] Created: ${filePath}`);
+
+    res.json({ sessionId });
+  } catch (error) {
+    console.error('[createSession] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // 获取会话详情
 router.get('/session/:id', async (req, res) => {
   const { projectId } = req.query;
@@ -210,7 +251,7 @@ router.post('/send', async (req, res) => {
     activeProcess = null;
   }
 
-  broadcastClaude('user', message);
+  broadcastClaude('user', message, sessionId);
 
   // 彻底清除所有 Claude 相关环境变量，避免嵌套检测
   const env = {};
@@ -253,24 +294,25 @@ router.post('/send', async (req, res) => {
   claude.stdout.on('data', (data) => {
     const text = data.toString();
     output += text;
-    broadcastClaude('output', text);
+    broadcastClaude('output', text, activeSessionId);
   });
 
   claude.stderr.on('data', (data) => {
-    broadcastClaude('error', data.toString());
+    broadcastClaude('error', data.toString(), activeSessionId);
   });
 
   claude.on('close', (code) => {
     activeProcess = null;
+    const finishedSessionId = activeSessionId;
     activeSessionId = null;
-    broadcastClaude('status', 'done');
-    broadcastClaude('done', { exitCode: code });
+    broadcastClaude('status', 'done', finishedSessionId);
+    broadcastClaude('done', { exitCode: code }, finishedSessionId);
     sendResponse();
   });
 
   claude.on('error', (error) => {
     activeProcess = null;
-    broadcastClaude('error', error.message);
+    broadcastClaude('error', error.message, activeSessionId);
     if (!sentFirst) {
       res.status(500).json({ error: error.message });
     }
@@ -282,7 +324,7 @@ router.post('/send', async (req, res) => {
   setTimeout(() => {
     if (activeProcess) {
       activeProcess.kill();
-      broadcastClaude('status', 'timeout');
+      broadcastClaude('status', 'timeout', activeSessionId);
     }
   }, 300000);
 });

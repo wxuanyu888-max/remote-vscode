@@ -23,7 +23,11 @@
 }
 
 .chat-messages .output-line.user {
-  color: #0078d4;
+  color: #ffffff;
+  background: #333333;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 8px 0;
 }
 
 .chat-messages .output-line.assistant {

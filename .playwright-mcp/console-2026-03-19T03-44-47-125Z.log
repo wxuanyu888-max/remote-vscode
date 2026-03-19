@@ -1,0 +1,7 @@
+[       6ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:322
+[  387373ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:322
+[  447020ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/chat/sessions:0
+[  447020ms] [ERROR] 创建会话失败: Error: HTTP 404: Not Found
+    at apiRequest (http://localhost:3000/js/modules/api.js:18:11)
+    at async createNewSession (http://localhost:3000/js/modules/sessions.js:446:18)
+    at async sessionSelect.onchange (http://localhost:3000/js/modules/sessions.js:110:28) @ http://localhost:3000/js/modules/sessions.js:455

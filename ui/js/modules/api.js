@@ -61,10 +61,23 @@ function updateConnectionStatus(connected) {
 }
 
 function handleWSMessage(data) {
-  if (data.type === 'session' || data.type === 'message') {
-    addSessionOutput(data.content || data.text, data.subtype || 'stdout');
+  console.log('[WS消息]', data.type, data.sessionId);
+
+  if (data.type === 'output') {
+    // 后端发送的是 broadcastClaude('output', text, sessionId)
+    // 格式为 { type: 'output', data: text, sessionId: xxx }
+    console.log('[WS] output:', data.data, 'sessionId:', data.sessionId);
+    addSessionOutput(data.data, 'stdout', data.sessionId);
+  } else if (data.type === 'user') {
+    addSessionOutput(data.data, 'input', data.sessionId);
+  } else if (data.type === 'error') {
+    addSessionOutput(data.data, 'error', data.sessionId);
   } else if (data.type === 'status') {
-    updateSessionStatus(data.status, data.sessionId);
+    updateSessionStatus(data.data, data.sessionId);
+  } else if (data.type === 'done') {
+    updateSessionStatus('done', data.sessionId);
+  } else if (data.type === 'message') {
+    addSessionOutput(data.content || data.text, data.subtype || 'stdout', data.sessionId);
   } else if (data.type === 'system') {
     loadSessions();
   } else if (data.type === 'terminal') {
@@ -72,8 +85,26 @@ function handleWSMessage(data) {
   }
 }
 
-function addSessionOutput(text, type = 'stdout') {
-  const output = document.getElementById('chat-messages') || document.getElementById('session-output');
+function addSessionOutput(text, type = 'stdout', sessionId = null) {
+  let output = null;
+
+  // 如果提供了sessionId，尝试找到对应的标签
+  if (sessionId) {
+    // 通过DOM查找带有sessionId的元素
+    const chatContents = document.querySelectorAll('.tab-content');
+    for (const content of chatContents) {
+      if (content.dataset.sessionId === sessionId) {
+        output = content.querySelector('.chat-messages');
+        break;
+      }
+    }
+  }
+
+  // 如果没找到，使用默认的 chat-messages
+  if (!output) {
+    output = document.getElementById('chat-messages') || document.getElementById('session-output');
+  }
+
   if (!output) return;
 
   // 检测文件变更格式

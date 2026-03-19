@@ -176,7 +176,25 @@
       "Bash(taskkill //F //PID 13208)",
       "Bash(taskkill //F //IM node.exe)",
       "Bash(curl -s \"http://localhost:3000/api/files/list?path=C:\\\\\\\\Users\\\\\\\\29718\\\\\\\\remote-vscode\" | head -c 2000)",
-      "Bash(sleep 2 && curl -s \"http://localhost:3000/api/files/list?path=C:/Users/29718/remote-vscode\")"
+      "Bash(sleep 2 && curl -s \"http://localhost:3000/api/files/list?path=C:/Users/29718/remote-vscode\")",
+      "Bash(curl -s http://localhost:3000/js/app.js | head -30)",
+      "Bash(node --check ui/js/modules/sessions.js 2>&1 || echo \"Syntax error found\")",
+      "Bash(curl -s http://localhost:3000 | head -5)",
+      "Bash(curl -s http://localhost:3000/api/chat/sessions | node -e \"const d=require\\('fs'\\).readFileSync\\(0,'utf8'\\); const s=JSON.parse\\(d\\).sessions.slice\\(0,3\\); s.forEach\\(x=>console.log\\(x.id?.slice\\(0,8\\), x.status, x.lastActivity\\)\\)\")",
+      "Bash(curl -s \"http://localhost:3000/api/chat/session/92380d29-1f38-4f9a-9c00-7fbae1d58665\" | head -100)",
+      "Bash(sleep 2 && curl -s http://localhost:3000/api/chat/sessions | node -e \"const d=require\\('fs'\\).readFileSync\\(0,'utf8'\\); const s=JSON.parse\\(d\\).sessions; console.log\\('Sessions:', s.length\\)\")",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_wait_for",
+      "Bash(curl -s -X POST http://localhost:3000/api/chat/send -H \"Content-Type: application/json\" -d '{\"sessionId\":\"test\",\"message\":\"hello\"}' 2>&1 | head -20)",
+      "Bash(curl -s \"http://localhost:3000/api/chat/session/92380d29-1f38-4f9a-9c00-7fbae1d58665\" 2>&1 | head -50)",
+      "Bash(ls -la C:/Users/29718/remote-vscode/*.js 2>/dev/null || dir C:\\\\Users\\\\29718\\\\remote-vscode\\\\*.js)",
+      "Bash(curl -s -X POST http://localhost:3000/api/chat/send -H \"Content-Type: application/json\" -d '{\"sessionId\":\"6111343c-ac60-4837-9a05-21c45e18551c\",\"message\":\"你好\"}' 2>&1 | head -5)",
+      "Bash(curl -s http://localhost:3000/js/modules/api.js | head -20)",
+      "Bash(netstat -ano | findstr :3000 | head -3)",
+      "Bash(sleep 2 && curl -s http://localhost:3000 | head -5)",
+      "Bash(curl -s -X POST http://localhost:3000/api/chat/send -H \"Content-Type: application/json\" -d '{\"sessionId\":\"test-session-123\",\"message\":\"hello test\"}' 2>&1)",
+      "Bash(sleep 3 && curl -s http://localhost:3000 | head -3)",
+      "Bash(curl -s http://localhost:3000/api/chat/health)"
     ]
   }
 }

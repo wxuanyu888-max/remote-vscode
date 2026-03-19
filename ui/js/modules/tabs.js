@@ -34,7 +34,7 @@ export function openChatTab(sessionId, sessionName) {
   const existingTab = state.openTabs.find(t => t.sessionId === sessionId && t.type === 'chat');
   if (existingTab) {
     switchToTab(existingTab.id);
-    return;
+    return existingTab;
   }
 
   const tabId = 'chat-' + (++state.tabIdCounter);
@@ -55,6 +55,8 @@ export function openChatTab(sessionId, sessionName) {
   renderTab(tab, state.activeGroup);
   renderChatTabContent(tab, state.activeGroup);
   switchToTab(tabId);
+
+  return tab;
 }
 
 export function openTerminalTab() {
@@ -279,11 +281,16 @@ export function renderFileTabContent(tab, groupId = 'main') {
   contentEl.className = 'tab-content';
   contentEl.dataset.tabId = tab.id;
   contentEl.dataset.groupId = groupId;
+
+  // 检查是否为 Markdown 文件
+  const isMarkdown = tab.path && /\.(md|markdown)$/i.test(tab.path);
+  const viewerContentClass = isMarkdown ? 'viewer-content markdown-body' : 'viewer-content';
+
   contentEl.innerHTML = `
     <div class="viewer-header">
       <span class="viewer-title">${tab.name}</span>
     </div>
-    <div class="viewer-content">
+    <div class="${viewerContentClass}">
       <div class="loading">加载中...</div>
     </div>
   `;
@@ -302,7 +309,13 @@ export function renderFileTabContent(tab, groupId = 'main') {
   apiRequest(`/api/files/read?path=${encodeURIComponent(tab.path)}&root=${encodeURIComponent(rootPath)}`)
     .then(data => {
       const contentDiv = contentEl.querySelector('.viewer-content');
-      contentDiv.innerHTML = `<pre>${escapeHtml(data.content || '')}</pre>`;
+      if (isMarkdown && typeof marked !== 'undefined') {
+        // Markdown 文件渲染
+        contentDiv.innerHTML = marked.parse(data.content || '');
+      } else {
+        // 普通文件显示原始文本
+        contentDiv.innerHTML = `<pre>${escapeHtml(data.content || '')}</pre>`;
+      }
     })
     .catch(err => {
       contentEl.querySelector('.viewer-content').innerHTML = `<div class="output-line error">读取失败: ${err.message}</div>`;

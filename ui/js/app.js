@@ -45,6 +45,12 @@ function bindEvents() {
     refreshBtn.addEventListener('click', refreshProjects);
   }
 
+  // Session 刷新按钮
+  const refreshSessionsBtn = document.getElementById('btn-refresh-sessions');
+  if (refreshSessionsBtn) {
+    refreshSessionsBtn.addEventListener('click', loadSessions);
+  }
+
   // 文件导航按钮
   const fileUpBtn = document.getElementById('btn-file-up');
   if (fileUpBtn) {
@@ -74,6 +80,25 @@ function bindEvents() {
       const sessionId = await createNewSession();
       if (sessionId) {
         import('./modules/tabs.js').then(m => m.openChatTab(sessionId, '新对话'));
+      }
+    });
+  }
+
+  // 欢迎页聊天发送按钮
+  const chatInput = document.getElementById('chat-input');
+  const btnSend = document.getElementById('btn-send');
+  if (chatInput && btnSend) {
+    const sendChatMessage = () => {
+      const text = chatInput.value.trim();
+      if (text && state.currentSession) {
+        import('./modules/sessions.js').then(m => m.sendMessage(text));
+        chatInput.value = '';
+      }
+    };
+    btnSend.addEventListener('click', sendChatMessage);
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendChatMessage();
       }
     });
   }
@@ -114,6 +139,7 @@ async function init() {
   initViewSwitcher();
   bindEvents();
   loadProjects();
+  loadSessions();  // 初始化时加载 sessions
   loadSystemInfo();
   initTerminal();
   initSplitHandles();
