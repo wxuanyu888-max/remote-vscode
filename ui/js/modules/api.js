@@ -1,6 +1,6 @@
 // API 和 WebSocket 模块
 import { state } from './state.js';
-import { loadSessions } from './sessions.js';
+import { loadSessions, findSessionOutput } from './sessions.js';
 
 const API_BASE = window.location.origin;
 let ws = null;
@@ -88,35 +88,15 @@ function handleWSMessage(data) {
 }
 
 function addSessionOutput(text, type = 'stdout', sessionId = null) {
-  let output = null;
-
-  console.log(`[addSessionOutput] text长度=${text.length}, type=${type}, sessionId=${sessionId}`);
-
-  // 如果提供了sessionId，尝试找到对应的标签
-  if (sessionId) {
-    // 通过DOM查找带有sessionId的元素
-    const chatContents = document.querySelectorAll('.tab-content');
-    console.log(`[addSessionOutput] 查找 sessionId=${sessionId}, 找到 ${chatContents.length} 个 tab-content`);
-    for (const content of chatContents) {
-      console.log(`[addSessionOutput]   tab sessionId=${content.dataset.sessionId}`);
-      if (content.dataset.sessionId === sessionId) {
-        output = content.querySelector('.chat-messages');
-        console.log('[addSessionOutput]   匹配! output=', output ? '找到' : 'null');
-        break;
-      }
-    }
-  }
+  // 优先使用 findSessionOutput 查找对应的 tab
+  let output = findSessionOutput(sessionId);
 
   // 如果没找到，使用默认的 chat-messages
   if (!output) {
     output = document.getElementById('chat-messages') || document.getElementById('session-output');
-    console.log('[addSessionOutput] 使用默认 chat-messages, output=', output ? '找到' : 'null');
   }
 
-  if (!output) {
-    console.log('[addSessionOutput] 没有找到任何输出元素!');
-    return;
-  }
+  if (!output) return;
 
   // 检测文件变更格式
   if (text.includes('●') || text.includes('◼') || text.includes('✓') ||

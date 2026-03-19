@@ -28,7 +28,7 @@ function broadcastClaude(type, data, sessionId = null) {
   }
 
   const clientCount = global.claudeWSS.clients.size;
-  console.log(`[Broadcast] Sending ${type} to ${clientCount} clients`);
+  console.log(`[Broadcast] Sending ${type} to ${clientCount} clients, sessionId=${sessionId}`);
 
   const message = JSON.stringify({ type, data, sessionId, timestamp: Date.now() });
   global.claudeWSS.clients.forEach(client => {
@@ -391,6 +391,7 @@ router.post('/send', async (req, res) => {
   claude.stdout.on('data', (data) => {
     const text = data.toString();
     output += text;
+    console.log(`[Claude stdout] 收到 ${text.length} 字符, activeSessionId=${activeSessionId}`);
     broadcastClaude('output', text, activeSessionId);
   });
 

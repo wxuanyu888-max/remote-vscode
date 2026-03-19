@@ -206,7 +206,8 @@
       "Bash(sleep 2 && curl -X POST http://localhost:3000/api/chat/sessions -H \"Content-Type: application/json\" -d '{}' 2>&1)",
       "Bash(curl http://localhost:3000/api/chat/sessions 2>&1)",
       "Bash(cd C:/Users/29718/remote-vscode && npm run start:web)",
-      "Bash(tasklist | grep -i \"node\" | head -5)"
+      "Bash(tasklist | grep -i \"node\" | head -5)",
+      "Bash(netstat -ano | grep \"3000\" | head -5)"
     ]
   }
 }

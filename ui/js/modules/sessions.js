@@ -5,6 +5,17 @@ import { apiRequest } from './api.js';
 // 右键菜单相关变量
 let contextMenuSessionId = null;
 
+// 导出函数，供 api.js 使用 - 查找 session 对应的 output 元素
+export function findSessionOutput(sessionId) {
+  const targetSessionId = sessionId || state.currentSession;
+  if (!targetSessionId) return null;
+
+  const tab = state.openTabs.find(t => t.sessionId === targetSessionId && t.type === 'chat');
+  if (!tab) return null;
+
+  return document.querySelector(`#chat-messages-${tab.id}`);
+}
+
 // 加载并显示 session 历史消息
 async function loadSessionHistory(sessionId, maxLength = 5000) {
   try {
@@ -443,18 +454,7 @@ export function connectSessionStream(sessionId) {
 function handleStreamMessage(data) {
   // SSE 的 update 类型消息（轮询文件变化）
   if (data.type === 'update' && data.messages) {
-    const msgSessionId = data.sessionId || state.currentSession;
-
-    let output = null;
-    if (msgSessionId) {
-      const tab = state.openTabs.find(t => t.sessionId === msgSessionId && t.type === 'chat');
-      if (tab) {
-        output = document.querySelector(`#chat-messages-${tab.id}`);
-      }
-    }
-    if (!output) {
-      output = $('chat-messages');
-    }
+    const output = findSessionOutput(data.sessionId) || $('chat-messages');
     if (!output) return;
 
     // 解析并显示消息
@@ -511,23 +511,7 @@ function handleStreamMessage(data) {
   }
 
   if (data.type === 'content' || data.type === 'message') {
-    let output = null;
-
-    // 优先使用消息中的 sessionId 查找对应标签页
-    const msgSessionId = data.sessionId || state.currentSession;
-
-    if (msgSessionId) {
-      const tab = state.openTabs.find(t => t.sessionId === msgSessionId && t.type === 'chat');
-      if (tab) {
-        output = document.querySelector(`#chat-messages-${tab.id}`);
-      }
-    }
-
-    // 如果没找到，使用默认的 chat-messages
-    if (!output) {
-      output = $('chat-messages');
-    }
-
+    const output = findSessionOutput(data.sessionId) || $('chat-messages');
     if (!output) return;
 
     const isError = data.content?.type === 'error' || data.subtype === 'error';
@@ -558,21 +542,7 @@ function handleStreamMessage(data) {
       loadSessions();
     }
   } else if (data.type === 'error') {
-    let output = null;
-
-    const msgSessionId = data.sessionId || state.currentSession;
-
-    if (msgSessionId) {
-      const tab = state.openTabs.find(t => t.sessionId === msgSessionId && t.type === 'chat');
-      if (tab) {
-        output = document.querySelector(`#chat-messages-${tab.id}`);
-      }
-    }
-
-    if (!output) {
-      output = $('chat-messages');
-    }
-
+    const output = findSessionOutput(data.sessionId) || $('chat-messages');
     if (output) {
       const line = document.createElement('div');
       line.className = 'output-line error';
