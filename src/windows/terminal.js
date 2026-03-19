@@ -99,9 +99,19 @@ router.post('/close', (req, res) => {
 
   const term = terminals.get(id);
   if (term) {
+    // 监听 close 事件再返回响应，确保进程已退出
+    term.proc.on('close', () => {
+      terminals.delete(id);
+      res.json({ success: true });
+    });
     term.proc.kill();
-    terminals.delete(id);
-    res.json({ success: true });
+    // 如果 5 秒后还没关闭，直接删除并返回
+    setTimeout(() => {
+      if (terminals.has(id)) {
+        terminals.delete(id);
+        res.json({ success: true });
+      }
+    }, 5000);
   } else {
     res.status(404).json({ error: '终端不存在' });
   }
@@ -127,7 +137,7 @@ router.post('/exec', (req, res) => {
   }
 
   const workDir = cwd || process.cwd();
-  const proc = spawn(command, [], {
+  const proc = spawn(command, {
     shell: true,
     cwd: workDir
   });

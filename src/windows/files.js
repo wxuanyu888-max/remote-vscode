@@ -82,11 +82,10 @@ router.get('/read', (req, res) => {
     fullPath = path.join(dirPath, fullPath);
   }
 
-  // 安全检查：确保路径在允许的目录内（用户目录）
-  const userDir = (process.env.USERPROFILE || 'C:\\Users\\29718').replace(/\\/g, '/');
-  const normalizedPath = fullPath.replace(/\\/g, '/');
-  const isAllowed = normalizedPath.toLowerCase().startsWith(userDir.toLowerCase());
-  if (!isAllowed) {
+  // 安全检查：确保路径在允许的目录内（使用与浏览相同的根目录）
+  const normalizedDirPath = path.normalize(dirPath).replace(/\\/g, '/').toLowerCase();
+  const normalizedFullPath = path.normalize(fullPath).replace(/\\/g, '/').toLowerCase();
+  if (!normalizedFullPath.startsWith(normalizedDirPath)) {
     return res.status(403).json({ error: 'Access denied: ' + fullPath });
   }
 

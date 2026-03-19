@@ -50,6 +50,12 @@
   border-radius: 4px;
   color: var(--text-primary);
   font-size: 13px;
+  font-family: inherit;
+  resize: none;
+  overflow: hidden;
+  min-height: 36px;
+  max-height: 150px;
+  line-height: 1.4;
 }
 
 .chat-input:focus {

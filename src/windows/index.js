@@ -36,9 +36,6 @@ app.use('/api/terminal', terminalRouter);
 app.use('/api/watcher', watcherRouter);
 app.use('/api/process', processRouter);
 
-// UI 静态文件（必须在API路由之后）
-app.use(express.static(path.join(__dirname, '../../ui')));
-
 // 获取本机IP
 function getLocalIP() {
   const interfaces = os.networkInterfaces();

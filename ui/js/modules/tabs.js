@@ -356,7 +356,7 @@ export function renderChatTabContent(tab, groupId = 'main') {
       <div class="chat-messages" id="${chatMessagesId}"></div>
     </div>
     <div class="session-input">
-      <input type="text" class="chat-input" id="${chatInputId}" placeholder="输入消息...">
+      <textarea class="chat-input" id="${chatInputId}" placeholder="输入消息..." rows="1"></textarea>
       <button class="btn-small btn-primary" id="${sendBtnId}">发送</button>
     </div>
   `;
@@ -373,13 +373,22 @@ export function renderChatTabContent(tab, groupId = 'main') {
       if (text) {
         import('./sessions.js').then(m => m.sendMessage(text, tab.sessionId));
         chatInput.value = '';
+        chatInput.style.height = 'auto';
       }
     });
 
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
+    // Enter 发送，Shift+Enter 换行
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
         sendBtn.click();
       }
+    });
+
+    // 自动调整高度
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
     });
   }
 }

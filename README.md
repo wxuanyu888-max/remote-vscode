@@ -8,7 +8,10 @@
 - **终端执行** - 远程执行命令，实时获取输出
 - **文件监控** - 监控项目文件变化，实时推送
 - **进程管理** - 查看和管理运行中的进程
-- **Claude 会话监控** - 实时查看 Claude Code 的输出
+- **Claude 会话监控** - 实时查看 Claude Code 的输出，支持：
+  - Read 工具显示文件内容（带行号）
+  - Edit 工具显示 diff 变化
+  - Bash/Task 等工具显示执行结果
 
 ## 技术栈
 
@@ -22,8 +25,11 @@
 # 安装依赖
 npm install
 
-# 启动服务
+# 启动后端服务 (端口 3000，包含内置前端)
 npm start
+
+# 如需独立前端界面
+npm run start:web
 ```
 
 服务启动后显示访问地址：
@@ -33,23 +39,35 @@ npm start
 局域网访问: http://192.168.x.x:3000
 ```
 
+打开浏览器访问即可使用。
+
 ## 项目结构
 
 ```
 remote-vscode/
-├── src/windows/       # 后端服务
-│   ├── index.js      # 主入口
-│   ├── files.js     # 文件服务
-│   ├── terminal.js  # 终端服务
-│   ├── watcher.js   # 文件监控
-│   ├── process.js   # 进程管理
-│   ├── chat.js      # Claude 会话
-│   └── projects.js  # 项目管理
-├── ui/               # 前端界面
-│   ├── index.html
-│   ├── css/         # 样式文件
-│   └── js/          # 脚本文件
-└── docs/            # 文档
+├── src/windows/           # 后端服务
+│   ├── index.js        # 主入口
+│   ├── files.js        # 文件服务
+│   ├── terminal.js     # 终端服务
+│   ├── watcher.js      # 文件监控
+│   ├── process.js      # 进程管理
+│   ├── chat.js         # Claude 会话
+│   └── projects.js     # 项目管理
+├── ui/                   # 前端界面
+│   ├── index.html       # 主页面
+│   ├── css/             # 样式文件
+│   └── js/              # 脚本模块
+│       ├── app.js       # 主应用
+│       └── modules/     # 功能模块
+│           ├── api.js       # API 封装
+│           ├── state.js     # 状态管理
+│           ├── tabs.js      # 标签页管理
+│           ├── split.js     # 分屏功能
+│           ├── files.js     # 文件浏览
+│           ├── terminal.js  # 终端
+│           ├── sessions.js  # 会话管理
+│           └── projects.js  # 项目
+└── package.json
 ```
 
 ## API 端点

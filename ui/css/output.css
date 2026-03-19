@@ -34,48 +34,59 @@
   word-break: break-all;
   margin-bottom: 2px;
   color: var(--text-primary);
-}
-
-.output-line.system {
-  color: #616161;
-}
-
-.output-line.stdout {
-  color: #1e1e1e;
   display: flex;
   align-items: flex-start;
 }
 
-.output-line.stdout .msg-bullet {
-  color: #666;
-  margin-right: 8px;
-  flex-shrink: 0;
+.output-line.system {
+  color: #616161;
+  display: block;
 }
 
-.output-line.stdout .msg-text {
+.output-line.stdout,
+.output-line.input,
+.output-line.error,
+.output-line.file-change,
+.output-line.tool-use,
+.output-line.tool-result {
+  color: #1e1e1e;
+}
+
+.output-line .msg-bullet {
+  color: #666;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.output-line .msg-text {
   flex: 1;
   white-space: pre-wrap;
   word-break: break-all;
   color: #1e1e1e;
+  line-height: 1.3 !important;
+  font-size: inherit;
 }
 
-/* Markdown 样式 */
-.output-line.stdout .msg-text h1,
-.output-line.stdout .msg-text h2,
-.output-line.stdout .msg-text h3 {
-  margin: 4px 0 2px;
+/* Markdown 样式 - 所有元素 margin 归零，由外层控制行距 */
+.msg-text > * {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.3 !important;
+  display: block;
+}
+
+.msg-text h1,
+.msg-text h2,
+.msg-text h3 {
   font-weight: 600;
 }
 
-.output-line.stdout .msg-text h1 { font-size: 1.3em; }
-.output-line.stdout .msg-text h2 { font-size: 1.1em; }
-.output-line.stdout .msg-text h3 { font-size: 1em; }
+.msg-text h1 { font-size: 1.3em; }
+.msg-text h2 { font-size: 1.1em; }
+.msg-text h3 { font-size: 1em; }
 
-.output-line.stdout .msg-text p {
-  margin: 2px 0;
-}
-
-.output-line.stdout .msg-text code {
+.msg-text code {
   background: rgba(0,0,0,0.1);
   padding: 1px 4px;
   border-radius: 3px;
@@ -83,62 +94,60 @@
   font-size: 0.9em;
 }
 
-.output-line.stdout .msg-text pre {
+.msg-text pre {
   background: rgba(0,0,0,0.1);
   padding: 4px;
   border-radius: 4px;
   overflow-x: auto;
-  margin: 2px 0;
 }
 
-.output-line.stdout .msg-text pre code {
-  background: none;
+.msg-text pre code {
+  background: rgba(0,0,0,0.1);
   padding: 0;
 }
 
-.output-line.stdout .msg-text ul,
-.output-line.stdout .msg-text ol {
+.msg-text ul,
+.msg-text ol {
   padding-left: 20px;
-  margin: 2px 0;
 }
 
-.output-line.stdout .msg-text li {
-  margin: 2px 0;
+.msg-text li {
+  list-style: disc;
 }
 
-.output-line.stdout .msg-text a {
+.msg-text a {
   color: #1e1e1e;
   text-decoration: underline;
 }
 
 .output-line.stderr {
-  color: #e81123;
+  color: #1e1e1e;
 }
 
 .output-line.info {
-  color: #0078d4;
+  color: #1e1e1e;
 }
 
 .output-line.success {
-  color: #107c10;
+  color: #1e1e1e;
 }
 
 .output-line.cmd {
-  color: #107c10;
+  color: #1e1e1e;
 }
 
 .output-line.input {
-  color: #0078d4;
+  color: #1e1e1e;
 }
 
 .output-line.error {
-  color: #e81123;
+  color: #1e1e1e;
 }
 
 /* 文件变更样式 */
 .output-line.file-change {
-  color: #107c10;
-  background: rgba(16, 124, 16, 0.1);
+  color: #1e1e1e;
+  background: rgba(0, 0, 0, 0.05);
   padding: 8px 12px;
   margin: 4px 0;
   border-radius: 4px;
@@ -149,11 +158,11 @@
 }
 
 .output-line.file-change .file-added {
-  color: #107c10;
+  color: #1e1e1e;
 }
 
 .output-line.file-change .file-removed {
-  color: #e81123;
+  color: #1e1e1e;
 }
 
 /* Diff 样式 */
@@ -166,17 +175,17 @@
   font-size: 11px;
   white-space: pre-wrap;
   word-break: break-all;
-  border-left: 3px solid #107c10;
+  border-left: 3px solid #1e1e1e;
 }
 
 .output-line.diff .diff-add {
-  color: #107c10;
-  background: rgba(16, 124, 16, 0.1);
+  color: #1e1e1e;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .output-line.diff .diff-remove {
-  color: #e81123;
-  background: rgba(232, 17, 35, 0.1);
+  color: #1e1e1e;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .output-line.diff .diff-context {
@@ -185,14 +194,14 @@
 
 /* 工具调用样式 */
 .output-line.tool {
-  color: #6a9955;
+  color: #1e1e1e;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
 }
 
 .output-line.tool-use {
   background: transparent;
-  color: #6a9955;
+  color: #1e1e1e;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   font-weight: bold;
@@ -200,15 +209,15 @@
 
 .output-line.tool-use .tool-name {
   background: transparent;
-  color: #6a9955;
+  color: #1e1e1e;
   font-weight: bold;
 }
 
 .output-line.tool-result {
-  color: #001480;
+  color: #1e1e1e;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 11px;
-  background: rgba(0, 20, 128, 0.05);
+  background: rgba(0, 0, 0, 0.05);
   padding: 4px 8px;
   margin: 2px 0;
 }

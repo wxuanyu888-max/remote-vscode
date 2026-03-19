@@ -93,13 +93,21 @@ function bindEvents() {
       if (text && state.currentSession) {
         import('./modules/sessions.js').then(m => m.sendMessage(text));
         chatInput.value = '';
+        chatInput.style.height = 'auto';
       }
     };
     btnSend.addEventListener('click', sendChatMessage);
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
+    // Enter 发送，Shift+Enter 换行
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
         sendChatMessage();
       }
+    });
+    // 自动调整高度
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
     });
   }
 }

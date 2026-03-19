@@ -5,6 +5,9 @@ import { loadSessions, findSessionOutput } from './sessions.js';
 const API_BASE = window.location.origin;
 let ws = null;
 
+// 流式输出：每个 session 的当前活动行
+const activeLines = new Map(); // key: sessionId, value: { element, type }
+
 export async function apiRequest(url, options = {}) {
   const response = await fetch(url, {
     ...options,
@@ -24,11 +27,9 @@ export async function apiRequest(url, options = {}) {
 export function connectWS() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const wsUrl = `${protocol}//${window.location.host}`;
-  console.log('[WS] 正在连接:', wsUrl);
   ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
-    console.log('[WS] 连接成功');
     updateConnectionStatus(true);
   };
 
@@ -63,67 +64,234 @@ function updateConnectionStatus(connected) {
 }
 
 function handleWSMessage(data) {
-  console.log('[WS消息]', data.type, data.sessionId);
+  console.log('[WS recv]', data.type, data.sessionId ? data.sessionId.substring(0,8) : 'null');
+  const { type, sessionId } = data;
 
-  if (data.type === 'output') {
-    // 后端发送的是 broadcastClaude('output', text, sessionId)
-    // 格式为 { type: 'output', data: text, sessionId: xxx }
-    console.log('[WS] output:', data.data, 'sessionId:', data.sessionId);
-    addSessionOutput(data.data, 'stdout', data.sessionId);
-  } else if (data.type === 'user') {
-    addSessionOutput(data.data, 'input', data.sessionId);
-  } else if (data.type === 'error') {
-    addSessionOutput(data.data, 'error', data.sessionId);
-  } else if (data.type === 'status') {
-    updateSessionStatus(data.data, data.sessionId);
-  } else if (data.type === 'done') {
-    updateSessionStatus('done', data.sessionId);
-  } else if (data.type === 'message') {
-    addSessionOutput(data.content || data.text, data.subtype || 'stdout', data.sessionId);
-  } else if (data.type === 'system') {
-    loadSessions();
-  } else if (data.type === 'terminal') {
+  if (type === 'output') {
+    // Claude 的实时输出，可能是文本或 JSON
+    handleClaudeOutput(data.data, sessionId);
+  } else if (type === 'user') {
+    addSessionOutput(data.data, 'input', sessionId);
+  } else if (type === 'error') {
+    addSessionOutput(data.data, 'error', sessionId);
+  } else if (type === 'status') {
+    updateSessionStatus(data.data, sessionId);
+  } else if (type === 'done') {
+    updateSessionStatus('done', sessionId);
+  } else if (type === 'message') {
+    handleClaudeOutput(data.content || data.text, sessionId);
+  } else if (type === 'system' || type === 'system-reminder') {
+    // 跳过 system 消息
+    return;
+  } else if (type === 'terminal') {
     addTerminalOutput(data.data, data.subtype || 'stdout');
   }
 }
 
+// 处理 Claude 的输出，根据内容类型渲染
+function handleClaudeOutput(text, sessionId) {
+  if (!text) return;
+
+  console.log('[handleClaudeOutput]', {
+    textLength: text.length,
+    textPrefix: text.substring(0, 100),
+    sessionId: sessionId ? sessionId.substring(0, 8) : null,
+    startsWithBrace: text.startsWith('{'),
+    startsWithBracket: text.startsWith('[')
+  });
+
+  // 尝试解析 JSON
+  if (text.startsWith('{') || text.startsWith('[')) {
+    try {
+      const json = JSON.parse(text);
+      console.log('[handleClaudeOutput] Parsed JSON, type:', json.type, 'role:', json.role);
+      renderClaudeMessage(json, sessionId);
+      return;
+    } catch (e) {
+      // 不是有效 JSON，当作文本处理
+      console.log('[handleClaudeOutput] JSON parse failed, treating as text');
+    }
+  }
+
+  // 文本内容追加到当前行
+  addSessionOutput(text, 'stdout', sessionId);
+}
+
+// 检查字符串是否看起来像会话ID/UUID而不是实际内容
+function looksLikeSessionId(str) {
+  if (!str || typeof str !== 'string') return false;
+  // UUID 格式: 8-4-4-4-12 十六进制字符
+  // 如果字符串是 36 个字符且包含 4 个短横线，很可能是 UUID
+  if (str.length === 36 && (str.match(/-/g) || []).length === 4) {
+    return true;
+  }
+  return false;
+}
+
+// 根据 Claude 消息类型渲染
+function renderClaudeMessage(msg, sessionId) {
+  // 跳过包含无效字段的消息（这些是元数据，不是实际内容）
+  if (msg.sourceToolAssistantUUID || msg.userType === 'external') {
+    // 这是包含执行上下文的元数据消息，跳过但不记录（避免日志过多）
+    return;
+  }
+
+  // 跳过元消息（isMeta 标记的消息是 Claude Code 的控制消息）
+  if (msg.isMeta) {
+    return;
+  }
+
+  // 跳过包含工具结果但没有实际内容的消息（这些是执行上下文）
+  if (msg.toolUseResult && !msg.content && !msg.message?.content) {
+    return;
+  }
+
+  // 过滤 system 相关消息（包括 system-reminder）
+  if (msg.role === 'system' || msg.type === 'system' ||
+      msg.role === 'system-reminder' || msg.type === 'system-reminder') {
+    return;
+  }
+
+  // 工具调用
+  if (msg.type === 'tool_use' || msg.content?.type === 'tool_use') {
+    const toolInfo = msg.content || msg;
+    const toolName = toolInfo.name || 'Unknown';
+    const toolInput = toolInfo.input ? JSON.stringify(toolInfo.input, null, 2).substring(0, 200) : '';
+    addSessionOutput(`[Edit] ${toolName}${toolInput ? ' ' + toolInput : ''}`, 'tool-use', sessionId);
+    return;
+  }
+
+  // 工具结果
+  if (msg.type === 'tool_result' || msg.content?.type === 'tool_result') {
+    const result = msg.content?.content || msg.content || msg.result || '';
+    const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+    addSessionOutput(text, 'stdout', sessionId);
+    return;
+  }
+
+  // 用户消息
+  if (msg.role === 'user' || msg.type === 'user') {
+    const content = msg.message?.content || msg.content;
+    if (typeof content === 'string') {
+      addSessionOutput(content, 'input', sessionId);
+    } else if (Array.isArray(content)) {
+      for (const item of content) {
+        if (item.type === 'thinking') continue;
+        if (item.text && item.text.includes('<system-reminder>')) continue;
+        if (item.type === 'text' && item.text) {
+          addSessionOutput(item.text, 'input', sessionId);
+        } else if (item.type === 'tool_use' && item.name) {
+          addSessionOutput(`[Edit] ${item.name}`, 'tool-use', sessionId);
+        }
+      }
+    }
+    return;
+  }
+
+  // 助手消息
+  if (msg.role === 'assistant' || msg.type === 'assistant') {
+    const content = msg.message?.content || msg.content;
+    if (Array.isArray(content)) {
+      for (const item of content) {
+        if (item.type === 'thinking') continue;
+        if (item.text && item.text.includes('<system-reminder>')) continue;
+        if (item.type === 'text' && item.text) {
+          addSessionOutput(item.text, 'stdout', sessionId);
+        } else if (item.type === 'tool_use' && item.name) {
+          addSessionOutput(`[Edit] ${item.name}`, 'tool-use', sessionId);
+        } else if (item.type === 'tool_result' && item.content) {
+          const text = typeof item.content === 'string' ? item.content : JSON.stringify(item.content);
+          addSessionOutput(text, 'stdout', sessionId);
+        }
+      }
+    } else if (typeof content === 'string') {
+      addSessionOutput(content, 'stdout', sessionId);
+    } else if (content && typeof content === 'object') {
+      // content 是单个对象 { type: 'text', text: '...' } 或 { type: 'tool_use', name: '...' }
+      if (content.type === 'text' && content.text) {
+        addSessionOutput(content.text, 'stdout', sessionId);
+      } else if (content.type === 'tool_use' && content.name) {
+        addSessionOutput(`[Edit] ${content.name}`, 'tool-use', sessionId);
+      } else if (content.type === 'tool_result' && content.content) {
+        const text = typeof content.content === 'string' ? content.content : JSON.stringify(content.content);
+        addSessionOutput(text, 'stdout', sessionId);
+      }
+    }
+    return;
+  }
+
+  // 跳过其他未知消息类型（不显示原始 JSON）
+}
+
 function addSessionOutput(text, type = 'stdout', sessionId = null) {
+  // 过滤 <system-reminder>
+  if (text && text.includes('<system-reminder>')) return;
+
+  // 过滤看起来像会话ID的字符串
+  if (looksLikeSessionId(text.trim())) return;
+
   // 优先使用 findSessionOutput 查找对应的 tab
   let output = findSessionOutput(sessionId);
 
-  // 如果没找到，使用默认的 chat-messages
+  // 如果没找到，尝试使用 currentSession
+  if (!output && state.currentSession && state.currentSession !== sessionId) {
+    output = findSessionOutput(state.currentSession);
+  }
+
+  // 如果还没找到，查找当前可见的 chat-messages 元素
   if (!output) {
-    output = document.getElementById('chat-messages') || document.getElementById('session-output');
+    const activeTabContent = document.querySelector('.tab-content.active');
+    if (activeTabContent) {
+      output = activeTabContent.querySelector('.chat-messages');
+    }
+    if (!output) {
+      output = document.getElementById('chat-messages') || document.getElementById('session-output');
+    }
   }
 
   if (!output) return;
 
-  // 检测文件变更格式
-  if (text.includes('●') || text.includes('◼') || text.includes('✓') ||
-      text.includes('Update(') || text.includes('Create(') || text.includes('Delete(') ||
-      text.includes('Added') || text.includes('removed') || text.includes('changed')) {
-    const line = document.createElement('div');
-    line.className = 'output-line file-change';
-    line.textContent = text;
-    output.appendChild(line);
-  } else if (type === 'error') {
-    const line = document.createElement('div');
-    line.className = 'output-line error';
-    line.textContent = text;
-    output.appendChild(line);
+  // 统一使用 ● 标记
+  const line = document.createElement('div');
+  line.className = `output-line ${type}`;
+
+  if (type === 'stdout') {
+    // marked.parse 返回 HTML，需要清理危险标签
+    const rawHtml = typeof marked !== 'undefined' ? marked.parse(text) : escapeHtml(text);
+    // 移除 script、iframe 等危险标签，允许安全标签
+    const safeHtml = rawHtml.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                           .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+                           .replace(/on\w+="[^"]*"/gi, '')
+                           .replace(/on\w+='[^']*'/gi, '');
+    line.innerHTML = `<span class="msg-bullet">●</span><span class="msg-text">${safeHtml}</span>`;
   } else if (type === 'input') {
-    const line = document.createElement('div');
-    line.className = 'output-line input';
-    line.textContent = `> ${text}`;
-    output.appendChild(line);
+    line.innerHTML = `<span class="msg-bullet">●</span><span class="msg-text">> ${escapeHtml(text)}</span>`;
+  } else if (type === 'tool-use') {
+    // 工具调用
+    line.innerHTML = `<span class="msg-bullet">●</span><span class="msg-text">${escapeHtml(text)}</span>`;
+  } else if (type === 'tool-result') {
+    // 工具结果
+    line.innerHTML = `<span class="msg-bullet">●</span><span class="msg-text">${escapeHtml(text)}</span>`;
+  } else if (type === 'error') {
+    // 错误
+    line.innerHTML = `<span class="msg-bullet">●</span><span class="msg-text">${escapeHtml(text)}</span>`;
+  } else if (type === 'file-change') {
+    // 文件变更
+    line.innerHTML = `<span class="msg-bullet">●</span><span class="msg-text">${escapeHtml(text)}</span>`;
   } else {
-    const line = document.createElement('div');
-    line.className = 'output-line stdout';
-    line.textContent = text;
-    output.appendChild(line);
+    // 其他类型
+    line.innerHTML = `<span class="msg-bullet">●</span><span class="msg-text">${escapeHtml(text)}</span>`;
   }
 
+  output.appendChild(line);
   output.scrollTop = output.scrollHeight;
+}
+
+// HTML 转义
+export function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 function addChatMessage(text, type = 'stdout') {

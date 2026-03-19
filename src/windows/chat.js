@@ -16,9 +16,8 @@ const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
-// 当前活跃的 Claude 进程
-let activeProcess = null;
-let activeSessionId = null; // 当前正在处理的 session
+// 当前活跃的 Claude 进程（使用 Map 支持多会话）
+const activeProcesses = new Map();
 
 // 广播消息
 function broadcastClaude(type, data, sessionId = null) {
@@ -27,15 +26,28 @@ function broadcastClaude(type, data, sessionId = null) {
     return;
   }
 
-  const clientCount = global.claudeWSS.clients.size;
-  console.log(`[Broadcast] Sending ${type} to ${clientCount} clients, sessionId=${sessionId}`);
-
   const message = JSON.stringify({ type, data, sessionId, timestamp: Date.now() });
+  let sentCount = 0;
+  let errCount = 0;
   global.claudeWSS.clients.forEach(client => {
     if (client.readyState === 1) {
-      client.send(message);
+      try {
+        client.send(message);
+        sentCount++;
+      } catch (e) {
+        console.log(`[Broadcast] send error: ${e.message}`);
+        errCount++;
+      }
     }
   });
+  console.log(`[Broadcast] ${type} -> ${sentCount} clients, ${errCount} errors, sessionId=${sessionId}`);
+}
+
+// 清理进程记录
+function cleanupProcess(sessionId) {
+  if (activeProcesses.has(sessionId)) {
+    activeProcesses.delete(sessionId);
+  }
 }
 
 // 获取 Claude 配置目录
@@ -60,8 +72,8 @@ router.get('/sessions', async (req, res) => {
 
   // 判断 session 是否正在运行：检查文件是否在最近 90 秒内被修改
   const isWorking = (sessionIdFromFile, stat) => {
-    // 如果这个 session 正是当前正在处理的，直接返回 working
-    if (activeSessionId && sessionIdFromFile === activeSessionId) {
+    // 如果这个 session 正在当前进程中运行，直接返回 working
+    if (activeProcesses.has(sessionIdFromFile)) {
       return true;
     }
 
@@ -342,13 +354,19 @@ router.post('/send', async (req, res) => {
     return res.status(400).json({ error: 'Message is required' });
   }
 
-  // 终止之前的进程
-  if (activeProcess) {
-    activeProcess.kill();
-    activeProcess = null;
+  // 判断是否是新 session（只有 null/undefined 才是新 session，'new' 字符串也是无效的）
+  const isNewSession = !sessionId || sessionId === 'new';
+  // 对于新 session，使用 'new' 作为标识；对于有效 sessionId，使用真实的 sessionId
+  const currentSessionId = isNewSession ? 'new' : sessionId;
+
+  // 终止该 session 之前的进程（如果存在）
+  if (activeProcesses.has(currentSessionId)) {
+    const oldProc = activeProcesses.get(currentSessionId);
+    oldProc.kill();
+    cleanupProcess(currentSessionId);
   }
 
-  broadcastClaude('user', message, sessionId);
+  broadcastClaude('user', message, currentSessionId);
 
   // 彻底清除所有 Claude 相关环境变量，避免嵌套检测
   const env = {};
@@ -359,8 +377,10 @@ router.post('/send', async (req, res) => {
   }
 
   // 使用 -p 模式发送消息
+  // 只有当 sessionId 是有效的真实 session ID 时才使用 --continue
+  // 'new' 或空值表示新 session，不使用 --continue
   let args;
-  if (sessionId) {
+  if (sessionId && sessionId !== 'new') {
     args = ['--continue', sessionId, '-p', message];
   } else {
     args = ['-p', message];
@@ -368,70 +388,92 @@ router.post('/send', async (req, res) => {
 
   const cwd = projectPath && fs.existsSync(projectPath) ? projectPath : process.cwd();
 
-  console.log(`[Claude] Starting with env keys: ${Object.keys(env).join(', ')}`);
-
   const claude = spawn('claude', args, {
     shell: true,
     cwd: cwd,
-    env
+    env,
+    stdio: ['ignore', 'pipe', 'pipe']
   });
 
-  activeProcess = claude;
-  activeSessionId = sessionId || 'new';  // 追踪当前活跃的 session
-  let output = '';
-  let sentFirst = false;
+  // 使用 Map 存储进程，以 sessionId 为 key
+  const procInfo = {
+    process: claude,
+    output: '',
+    responseSent: false,
+    timeoutId: null,
+    isTimeout: false  // 标记是否超时
+  };
+  activeProcesses.set(currentSessionId, claude);
 
-  const sendResponse = () => {
-    if (!sentFirst) {
-      sentFirst = true;
-      res.json({ response: output, sessionId: sessionId || 'new' });
+  // 发送响应的辅助函数，确保只发送一次
+  const sendResponse = (statusCode, data) => {
+    if (!procInfo.responseSent) {
+      procInfo.responseSent = true;
+      res.status(statusCode).json(data);
     }
   };
 
+  // 使用闭包中的 currentSessionId，避免竞态
   claude.stdout.on('data', (data) => {
     const text = data.toString();
-    output += text;
-    console.log(`[Claude stdout] 收到 ${text.length} 字符, activeSessionId=${activeSessionId}`);
-    broadcastClaude('output', text, activeSessionId);
+    procInfo.output += text;
+    broadcastClaude('output', text, currentSessionId);
   });
 
   claude.stderr.on('data', (data) => {
-    broadcastClaude('error', data.toString(), activeSessionId);
+    broadcastClaude('error', data.toString(), currentSessionId);
   });
 
   claude.on('close', (code) => {
-    activeProcess = null;
-    const finishedSessionId = activeSessionId;
-    activeSessionId = null;
-    broadcastClaude('status', 'done', finishedSessionId);
-    broadcastClaude('done', { exitCode: code }, finishedSessionId);
-    sendResponse();
+    cleanupProcess(currentSessionId);
+    if (procInfo.timeoutId) {
+      clearTimeout(procInfo.timeoutId);
+    }
+    // 如果是超时导致的关闭，不发送正常响应（超时已经通过 broadcastClaude 通知了）
+    if (procInfo.isTimeout) {
+      return;
+    }
+    broadcastClaude('status', 'done', currentSessionId);
+    broadcastClaude('done', { exitCode: code }, currentSessionId);
+    sendResponse(200, { response: procInfo.output, sessionId: currentSessionId });
   });
 
   claude.on('error', (error) => {
-    activeProcess = null;
-    broadcastClaude('error', error.message, activeSessionId);
-    if (!sentFirst) {
-      res.status(500).json({ error: error.message });
+    cleanupProcess(currentSessionId);
+    if (procInfo.timeoutId) {
+      clearTimeout(procInfo.timeoutId);
     }
+    broadcastClaude('error', error.message, currentSessionId);
+    sendResponse(500, { error: error.message });
   });
 
-  sendResponse();
-
   // 5分钟超时
-  setTimeout(() => {
-    if (activeProcess) {
-      activeProcess.kill();
-      broadcastClaude('status', 'timeout', activeSessionId);
+  procInfo.timeoutId = setTimeout(() => {
+    if (activeProcesses.has(currentSessionId)) {
+      procInfo.isTimeout = true;  // 标记为超时，防止 close 事件重复响应
+      claude.kill();
+      cleanupProcess(currentSessionId);
+      broadcastClaude('status', 'timeout', currentSessionId);
     }
   }, 300000);
 });
 
 // 停止当前 Claude
 router.post('/stop', (req, res) => {
-  if (activeProcess) {
-    activeProcess.kill();
-    activeProcess = null;
+  const { sessionId } = req.body;
+
+  if (sessionId && activeProcesses.has(sessionId)) {
+    // 停止指定 session 的进程
+    const proc = activeProcesses.get(sessionId);
+    proc.kill();
+    cleanupProcess(sessionId);
+    broadcastClaude('status', 'idle', sessionId);
+  } else if (!sessionId) {
+    // 停止所有活跃进程
+    for (const [sid, proc] of activeProcesses) {
+      proc.kill();
+      cleanupProcess(sid);
+    }
     broadcastClaude('status', 'idle');
   }
   res.json({ success: true });
@@ -441,7 +483,7 @@ router.post('/stop', (req, res) => {
 router.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    hasActiveSession: activeProcess !== null
+    activeSessionCount: activeProcesses.size
   });
 });
 
@@ -588,5 +630,26 @@ router.get('/stream/:id', (req, res) => {
 export function initClaudeWS(wss) {
   global.claudeWSS = wss;
 }
+
+// 日志写入接口
+router.post('/log', async (req, res) => {
+  const { content } = req.body;
+  if (!content) {
+    return res.status(400).json({ error: 'Content is required' });
+  }
+
+  // 使用绝对路径，确保无论从哪个目录启动都能正确写入
+  const logDir = path.join(os.homedir(), '.claude', 'logs');
+  const logPath = path.join(logDir, 'session-raw.log');
+
+  // 确保目录存在
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+
+  // 追加写入
+  fs.appendFileSync(logPath, content + '\n');
+  res.json({ success: true });
+});
 
 export default router;
