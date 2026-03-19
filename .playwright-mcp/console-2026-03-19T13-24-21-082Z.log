@@ -1,0 +1,12 @@
+[     393ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0
+[   64023ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:532
+[   64745ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:532
+[   64745ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:133:24)
+    at HTMLDocument.init (http://localhost:3000/js/app.js:151:3) @ http://localhost:3000/js/app.js:140
+[   65254ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:532
+[   65254ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:133:24)
+    at HTMLDocument.init (http://localhost:3000/js/app.js:151:3) @ http://localhost:3000/js/app.js:140

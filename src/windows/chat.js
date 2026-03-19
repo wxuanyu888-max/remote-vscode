@@ -375,12 +375,16 @@ router.post('/send', async (req, res) => {
       env[key] = process.env[key];
     }
   }
+  // 显式设置 CLAUDECODE 为空字符串，确保子进程不会检测到嵌套会话
+  env.CLAUDECODE = '';
+  env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '';
 
   // 使用 -p 模式发送消息
   // 只有当 sessionId 是有效的真实 session ID 时才使用 --continue
   // 'new' 或空值表示新 session，不使用 --continue
+  // 注意：session-* 格式的 ID 是通过 API 新创建的，--continue 可能无法识别，使用 -p 即可
   let args;
-  if (sessionId && sessionId !== 'new') {
+  if (sessionId && sessionId !== 'new' && !sessionId.startsWith('session-')) {
     args = ['--continue', sessionId, '-p', message];
   } else {
     args = ['-p', message];

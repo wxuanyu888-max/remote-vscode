@@ -1,0 +1,5 @@
+[      10ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:604
+[      10ms] [ERROR] 发送消息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at Module.sendMessage (http://localhost:3000/js/modules/sessions.js:799:3)
+    at http://localhost:3000/js/modules/tabs.js:374:45 @ http://localhost:3000/js/modules/sessions.js:805

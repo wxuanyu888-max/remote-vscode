@@ -1,6 +1,7 @@
 // Session 管理模块
 import { state, $ } from './state.js';
 import { apiRequest } from './api.js';
+import { decodeProjectPath, encodeProjectPath } from './projects.js';
 
 // HTML 转义函数
 function escapeHtml(text) {
@@ -283,6 +284,18 @@ export async function selectSession(sessionId) {
   state.currentSession = sessionId;
   const session = state.sessions.find(s => (s.id || s.sessionId) === sessionId);
 
+  // 设置当前项目 - 根据 session 的 projectId 找到对应的项目
+  if (session?.projectId) {
+    const project = state.projects.find(p => encodeProjectPath(p.path) === session.projectId);
+    if (project) {
+      state.currentProject = { path: project.path, name: project.name };
+    } else {
+      // 如果没在 state.projects 中找到，尝试解码 projectId 获取路径
+      const decodedPath = decodeProjectPath(session.projectId);
+      state.currentProject = { path: decodedPath, name: session.projectPath?.split(/[/\\]/).pop() || '未知' };
+    }
+  }
+
   // 查找是否存在该 session 的标签
   const existingTab = state.openTabs.find(t => t.sessionId === sessionId && t.type === 'chat');
 
@@ -555,8 +568,20 @@ function renderHistoryMessage(container, msg) {
   const content = msg.message?.content || msg.content;
 
   if (role === 'user') {
-    const text = extractText(content);
-    if (text) addMessage(container, text, 'input');
+    // user 消息可能是工具结果或用户输入
+    if (Array.isArray(content)) {
+      content.forEach(c => {
+        if (c.type === 'tool_result' && c.content) {
+          const text = formatToolResult(c.content);
+          if (text) addMessage(container, text, 'stdout');
+        } else if (c.type === 'text' && c.text) {
+          addMessage(container, c.text, 'input');
+        }
+      });
+    } else {
+      const text = extractText(content);
+      if (text) addMessage(container, text, 'input');
+    }
   } else if (role === 'assistant') {
     if (content) {
       const text = extractText(content);
@@ -652,11 +677,6 @@ function looksLikeSessionId(str) {
 // 渲染消息数组到输出元素
 function renderMessages(output, messages) {
   for (const msg of messages) {
-    // 跳过 sourceToolAssistantUUID 的消息（这是执行上下文，不是实际输出）
-    if (msg.sourceToolAssistantUUID) {
-      continue;
-    }
-
     // 跳过元消息
     if (msg.isMeta) {
       continue;
@@ -795,7 +815,8 @@ export function sendMessage(text, sessionId = null) {
     method: 'POST',
     body: JSON.stringify({
       sessionId: targetSessionId,
-      message: text
+      message: text,
+      projectPath: state.currentProject?.path
     })
   }).catch(err => {
     console.error('发送消息失败:', err);
@@ -805,9 +826,11 @@ export function sendMessage(text, sessionId = null) {
 
 export async function createNewSession() {
   try {
+    // 获取当前项目的 projectId
+    const projectId = state.currentProject ? encodeProjectPath(state.currentProject.path) : null;
     const data = await apiRequest('/api/chat/sessions', {
       method: 'POST',
-      body: JSON.stringify({})
+      body: JSON.stringify({ projectId })
     });
 
     if (data.sessionId) {

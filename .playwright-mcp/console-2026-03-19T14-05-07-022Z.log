@@ -1,0 +1,48 @@
+[     361ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:3000/favicon.ico:0
+[  589340ms] [ERROR] SSE连接错误: Event @ http://127.0.0.1:3000/js/modules/sessions.js:604
+[  589340ms] [ERROR] 发送消息失败: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at Module.sendMessage (http://127.0.0.1:3000/js/modules/sessions.js:799:3)
+    at http://127.0.0.1:3000/js/modules/tabs.js:374:45 @ http://127.0.0.1:3000/js/modules/sessions.js:805
+[  591352ms] [ERROR] 发送消息失败: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at Module.sendMessage (http://127.0.0.1:3000/js/modules/sessions.js:799:3)
+    at http://127.0.0.1:3000/js/modules/tabs.js:374:45 @ http://127.0.0.1:3000/js/modules/sessions.js:805
+[  592104ms] [ERROR] 发送消息失败: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at Module.sendMessage (http://127.0.0.1:3000/js/modules/sessions.js:799:3)
+    at http://127.0.0.1:3000/js/modules/tabs.js:374:45 @ http://127.0.0.1:3000/js/modules/sessions.js:805
+[  678986ms] [ERROR] SSE连接错误: Event @ http://127.0.0.1:3000/js/modules/sessions.js:624
+[  678986ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://127.0.0.1:3000/api/chat/stream/3412d4de-f81b-430f-9474-65e67ba0518b:0
+[  681025ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/api/process/system:0
+[  681025ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://127.0.0.1:3000/js/app.js:134:24) @ http://127.0.0.1:3000/js/app.js:141
+[  682895ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/api/chat/sessions:0
+[  682895ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at loadSessions (http://127.0.0.1:3000/js/modules/sessions.js:81:24) @ http://127.0.0.1:3000/js/modules/sessions.js:90
+[  684046ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/js/modules/api.js:29
+[  684047ms] [ERROR] WebSocket错误: Event @ http://127.0.0.1:3000/js/modules/api.js:51
+[  685916ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/api/process/system:0
+[  685916ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://127.0.0.1:3000/js/app.js:134:24) @ http://127.0.0.1:3000/js/app.js:141
+[  685917ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/api/chat/sessions:0
+[  685917ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at loadSessions (http://127.0.0.1:3000/js/modules/sessions.js:81:24) @ http://127.0.0.1:3000/js/modules/sessions.js:90
+[  688903ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/api/chat/sessions:0
+[  688903ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at loadSessions (http://127.0.0.1:3000/js/modules/sessions.js:81:24) @ http://127.0.0.1:3000/js/modules/sessions.js:90
+[  689103ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/js/modules/api.js:29
+[  689103ms] [ERROR] WebSocket错误: Event @ http://127.0.0.1:3000/js/modules/api.js:51
+[  689181ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/api/process/system:0
+[  689181ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://127.0.0.1:3000/js/app.js:134:24) @ http://127.0.0.1:3000/js/app.js:141
+[  690906ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:3000/api/chat/sessions:0
+[  690906ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
+    at apiRequest (http://127.0.0.1:3000/js/modules/api.js:12:26)
+    at loadSessions (http://127.0.0.1:3000/js/modules/sessions.js:81:24) @ http://127.0.0.1:3000/js/modules/sessions.js:90

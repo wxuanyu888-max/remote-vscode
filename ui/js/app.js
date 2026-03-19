@@ -1,7 +1,7 @@
 // Remote VS Code - 主入口
 import { state } from './modules/state.js';
 import { connectWS, apiRequest } from './modules/api.js';
-import { loadProjects, refreshProjects } from './modules/projects.js';
+import { loadProjects, refreshProjects, encodeProjectPath } from './modules/projects.js';
 import { loadSessions } from './modules/sessions.js';
 import { loadFiles, goUpDirectory, refreshFiles } from './modules/files.js';
 import { initTerminal } from './modules/terminal.js';
@@ -114,9 +114,10 @@ function bindEvents() {
 
 async function createNewSession() {
   try {
+    const projectId = state.currentProject ? encodeProjectPath(state.currentProject.path) : null;
     const data = await apiRequest('/api/chat/sessions', {
       method: 'POST',
-      body: JSON.stringify({})
+      body: JSON.stringify({ projectId })
     });
     if (data.sessionId) {
       loadSessions();
