@@ -93,7 +93,7 @@ function formatTimeAgo(timestamp) {
   return `${Math.floor(diff / 86400000)}天前`;
 }
 
-export function selectSession(sessionId) {
+export async function selectSession(sessionId) {
   const sessionSelect = $('session-select');
   if (sessionSelect) {
     sessionSelect.value = sessionId;
@@ -102,6 +102,21 @@ export function selectSession(sessionId) {
   state.currentSession = sessionId;
   const session = state.sessions.find(s => (s.id || s.sessionId) === sessionId);
 
+  // 查找是否存在该 session 的标签
+  const existingTab = state.openTabs.find(t => t.sessionId === sessionId && t.type === 'chat');
+
+  if (existingTab) {
+    // 如果已存在标签，切换到该标签
+    const { switchToTab } = await import('./tabs.js');
+    switchToTab(existingTab.id);
+  } else {
+    // 如果不存在，创建新标签
+    const sessionName = session?.name || `Session ${sessionId.substring(0, 8)}`;
+    const { openChatTab } = await import('./tabs.js');
+    openChatTab(sessionId, sessionName);
+  }
+
+  // 同时更新 welcome 页面的 chat-messages（保持兼容性）
   const chatMessages = $('chat-messages');
   if (chatMessages) {
     chatMessages.innerHTML = `
@@ -139,7 +154,21 @@ export function connectSessionStream(sessionId) {
 
 function handleStreamMessage(data) {
   if (data.type === 'content' || data.type === 'message') {
-    const output = $('chat-messages');
+    let output = null;
+
+    // 优先查找当前 session 对应的标签页
+    if (state.currentSession) {
+      const tab = state.openTabs.find(t => t.sessionId === state.currentSession && t.type === 'chat');
+      if (tab) {
+        output = document.querySelector(`#chat-messages-${tab.id}`);
+      }
+    }
+
+    // 如果没找到，使用默认的 chat-messages
+    if (!output) {
+      output = $('chat-messages');
+    }
+
     if (!output) return;
 
     const isError = data.content?.type === 'error' || data.subtype === 'error';
@@ -169,7 +198,19 @@ function handleStreamMessage(data) {
       loadSessions();
     }
   } else if (data.type === 'error') {
-    const output = $('chat-messages');
+    let output = null;
+
+    if (state.currentSession) {
+      const tab = state.openTabs.find(t => t.sessionId === state.currentSession && t.type === 'chat');
+      if (tab) {
+        output = document.querySelector(`#chat-messages-${tab.id}`);
+      }
+    }
+
+    if (!output) {
+      output = $('chat-messages');
+    }
+
     if (output) {
       const line = document.createElement('div');
       line.className = 'output-line error';
@@ -180,13 +221,28 @@ function handleStreamMessage(data) {
   }
 }
 
-export function sendMessage(text) {
-  if (!state.currentSession) {
+export function sendMessage(text, sessionId = null) {
+  const targetSessionId = sessionId || state.currentSession;
+  if (!targetSessionId) {
     alert('请先选择一个会话');
     return;
   }
 
-  const output = $('chat-messages');
+  // 查找对应的 chat-messages 元素
+  let output = null;
+  if (sessionId) {
+    // 查找该 session 对应的标签页中的 chat-messages
+    const tab = state.openTabs.find(t => t.sessionId === sessionId && t.type === 'chat');
+    if (tab) {
+      output = document.querySelector(`#chat-messages-${tab.id}`);
+    }
+  }
+
+  // 如果没找到，使用默认的 chat-messages
+  if (!output) {
+    output = $('chat-messages');
+  }
+
   if (output) {
     const line = document.createElement('div');
     line.className = 'output-line input';
@@ -198,7 +254,7 @@ export function sendMessage(text) {
   apiRequest('/api/chat/send', {
     method: 'POST',
     body: JSON.stringify({
-      sessionId: state.currentSession,
+      sessionId: targetSessionId,
       message: text
     })
   }).catch(err => {

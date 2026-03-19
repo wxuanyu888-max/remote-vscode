@@ -26,9 +26,11 @@ router.get('/list', (req, res) => {
 
   try {
     const fullPath = path.join(dirPath, relativePath);
+    const normalizedDirPath = path.normalize(dirPath).replace(/\//g, '\\');
+    const normalizedFullPath = path.normalize(fullPath).replace(/\//g, '\\');
 
     // 安全检查：防止目录穿越
-    if (!fullPath.startsWith(dirPath)) {
+    if (!normalizedFullPath.startsWith(normalizedDirPath)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -38,11 +40,15 @@ router.get('/list', (req, res) => {
 
     const items = fs.readdirSync(fullPath, { withFileTypes: true });
 
+    console.log('[DEBUG] items sample:', items.slice(0, 2).map(i => ({ name: i.name, isDir: i.isDirectory() })));
+
     const result = items.map(item => ({
       name: item.name,
-      isDirectory: item.isDirectory(),
+      isDirectory: Boolean(item.isDirectory()),
       path: path.join(relativePath, item.name).replace(/\\/g, '/')
     }));
+
+    console.log('[DEBUG] result sample:', result.slice(0, 2));
 
     // 目录排在前面
     result.sort((a, b) => {
@@ -54,7 +60,7 @@ router.get('/list', (req, res) => {
     res.json({
       currentPath: relativePath,
       rootPath: dirPath,
-      items
+      items: result
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -133,7 +139,7 @@ router.get('/tree', (req, res) => {
         const treeItem = {
           name: item.name,
           path: itemPath,
-          isDirectory: item.isDirectory()
+          isDirectory: Boolean(item.isDirectory())
         };
 
         if (item.isDirectory() && currentDepth < depth) {

@@ -14,6 +14,8 @@ export async function loadFiles(dirPath = null) {
 
   try {
     const data = await apiRequest(`/api/files/list?path=${encodeURIComponent(targetPath)}`);
+    console.log('[DEBUG] API response:', data);
+    console.log('[DEBUG] items sample:', (data.items || []).slice(0, 3));
     state.currentFilePath = targetPath;
 
     const currentPathEl = $('current-path');
@@ -21,7 +23,7 @@ export async function loadFiles(dirPath = null) {
       currentPathEl.textContent = data.rootPath || targetPath;
     }
 
-    renderFileTree(data.items || []);
+    renderFileTree(data.items || [], data.rootPath);
   } catch (error) {
     console.error('加载文件失败:', error);
     const fileList = $('file-list');
@@ -31,7 +33,7 @@ export async function loadFiles(dirPath = null) {
   }
 }
 
-export function renderFileTree(items) {
+export function renderFileTree(items, currentPath) {
   const fileList = $('file-list');
   if (!fileList) return;
 
@@ -48,7 +50,7 @@ export function renderFileTree(items) {
 
     return `
       <div class="file-item ${item.isDirectory ? 'directory' : 'file'}"
-           data-parent-path="${item.parentPath || ''}"
+           data-parent-path="${currentPath}"
            data-name="${item.name}"
            data-is-dir="${item.isDirectory}">
         <span class="file-icon">${icon}</span>

@@ -57,6 +57,33 @@ export function openChatTab(sessionId, sessionName) {
   switchToTab(tabId);
 }
 
+export function openTerminalTab() {
+  // 检查是否已存在终端标签
+  const existingTab = state.openTabs.find(t => t.type === 'terminal');
+  if (existingTab) {
+    switchToTab(existingTab.id);
+    return;
+  }
+
+  const tabId = 'terminal-' + (++state.tabIdCounter);
+  const tab = {
+    id: tabId,
+    type: 'terminal',
+    name: '终端',
+    groupId: state.activeGroup
+  };
+  state.openTabs.push(tab);
+
+  const group = state.editorGroups.find(g => g.id === state.activeGroup);
+  if (group) {
+    group.tabs.push(tabId);
+  }
+
+  renderTab(tab, state.activeGroup);
+  renderTerminalTabContent(tab, state.activeGroup);
+  switchToTab(tabId);
+}
+
 export function renderTab(tab, groupId = 'main') {
   let tabsBar;
   if (groupId === 'main') {
@@ -73,12 +100,12 @@ export function renderTab(tab, groupId = 'main') {
   tabEl.dataset.groupId = groupId;
   tabEl.draggable = true;
 
-  const icon = tab.type === 'file' ? '📄' : '💬';
+  const icon = tab.type === 'file' ? '📄' : tab.type === 'chat' ? '💬' : '⬛';
   tabEl.innerHTML = `
     <span class="tab-icon">${icon}</span>
     <span class="tab-name">${tab.name}</span>
     <span class="tab-actions">
-      <button class="split-btn" data-split="vertical" title="分屏">⧈</button>
+      <button class="split-btn" data-split="right" title="向右分屏">⫽</button>
       <button class="close-btn" title="关闭">×</button>
     </span>
   `;
@@ -230,6 +257,8 @@ export function refreshTabContents() {
           renderFileTabContent(tab, group.id);
         } else if (tab.type === 'chat') {
           renderChatTabContent(tab, group.id);
+        } else if (tab.type === 'terminal') {
+          renderTerminalTabContent(tab, group.id);
         }
       }
     });
@@ -290,14 +319,20 @@ export function renderChatTabContent(tab, groupId = 'main') {
 
   if (!tabContents) return;
 
+  // 使用动态 ID 以支持多个会话标签
+  const chatMessagesId = 'chat-messages-' + tab.id;
+  const chatInputId = 'chat-input-' + tab.id;
+  const sendBtnId = 'send-' + tab.id;
+
   const contentEl = document.createElement('div');
   contentEl.className = 'tab-content';
   contentEl.dataset.tabId = tab.id;
   contentEl.dataset.groupId = groupId;
+  contentEl.dataset.sessionId = tab.sessionId;
 
   contentEl.innerHTML = `
     <div class="session-header">
-      <span class="session-title">活跃 Session</span>
+      <span class="session-title">${tab.name || '会话'}</span>
       <button class="icon-btn btn-refresh-sessions" title="刷新Session">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
           <path d="M13.65 2.35A8 8 0 1 0 16 8h-2a6 6 0 1 1-1.75-4.25L10 6h6V0l-2.35 2.35z"/>
@@ -305,25 +340,25 @@ export function renderChatTabContent(tab, groupId = 'main') {
       </button>
     </div>
     <div class="session-body">
-      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-messages" id="${chatMessagesId}"></div>
     </div>
     <div class="session-input">
-      <input type="text" id="chat-input" placeholder="输入消息...">
-      <button class="btn-small btn-primary" id="btn-send">发送</button>
+      <input type="text" class="chat-input" id="${chatInputId}" placeholder="输入消息...">
+      <button class="btn-small btn-primary" id="${sendBtnId}">发送</button>
     </div>
   `;
 
   tabContents.appendChild(contentEl);
 
   // 绑定发送按钮事件
-  const sendBtn = contentEl.querySelector('#btn-send');
-  const chatInput = contentEl.querySelector('#chat-input');
+  const sendBtn = contentEl.querySelector(`#${sendBtnId}`);
+  const chatInput = contentEl.querySelector(`#${chatInputId}`);
 
   if (sendBtn && chatInput) {
     sendBtn.addEventListener('click', () => {
       const text = chatInput.value.trim();
       if (text) {
-        import('./sessions.js').then(m => m.sendMessage(text));
+        import('./sessions.js').then(m => m.sendMessage(text, tab.sessionId));
         chatInput.value = '';
       }
     });
@@ -334,6 +369,108 @@ export function renderChatTabContent(tab, groupId = 'main') {
       }
     });
   }
+}
+
+export function renderTerminalTabContent(tab, groupId = 'main') {
+  let tabContents;
+  if (groupId === 'main') {
+    tabContents = $('tab-contents');
+  } else {
+    tabContents = document.querySelector(`[data-group-contents="${groupId}"]`);
+  }
+
+  if (!tabContents) return;
+
+  const contentEl = document.createElement('div');
+  contentEl.className = 'tab-content terminal-tab-content';
+  contentEl.dataset.tabId = tab.id;
+  contentEl.dataset.groupId = groupId;
+
+  // 创建唯一的ID以支持多个终端标签
+  const terminalId = 'terminal-' + tab.id;
+
+  contentEl.innerHTML = `
+    <div class="terminal-container" id="${terminalId}">
+      <div class="terminal-header">
+        <span class="terminal-title">终端</span>
+        <button class="icon-btn btn-clear-terminal" title="清空">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5"/>
+          </svg>
+        </button>
+      </div>
+      <div class="terminal-output" id="${terminalId}-output">
+        <div class="output-line system">欢迎使用终端</div>
+      </div>
+      <div class="terminal-input-area">
+        <input type="text" class="cmd-input" id="${terminalId}-input" placeholder="输入命令...">
+        <button class="btn-small btn-primary btn-exec">执行</button>
+      </div>
+    </div>
+  `;
+
+  tabContents.appendChild(contentEl);
+
+  // 绑定终端事件
+  const cmdInput = contentEl.querySelector(`#${terminalId}-input`);
+  const execBtn = contentEl.querySelector('.btn-exec');
+  const clearBtn = contentEl.querySelector('.btn-clear-terminal');
+  const output = contentEl.querySelector(`#${terminalId}-output`);
+
+  if (execBtn && cmdInput) {
+    execBtn.addEventListener('click', () => executeTerminalCommand(cmdInput, output, terminalId));
+
+    cmdInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        executeTerminalCommand(cmdInput, output, terminalId);
+      }
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (output) {
+        output.innerHTML = '<div class="output-line system">终端已清空</div>';
+      }
+    });
+  }
+}
+
+async function executeTerminalCommand(cmdInput, output, terminalId) {
+  if (!cmdInput || !output) return;
+
+  const cmd = cmdInput.value.trim();
+  if (!cmd) return;
+
+  // 显示输入的命令
+  addTerminalOutput(output, `$ ${cmd}`, 'input');
+  cmdInput.value = '';
+
+  try {
+    const data = await apiRequest('/api/terminal/exec', {
+      method: 'POST',
+      body: JSON.stringify({ command: cmd })
+    });
+
+    if (data.output) {
+      addTerminalOutput(output, data.output, 'stdout');
+    }
+    if (data.error) {
+      addTerminalOutput(output, data.error, 'error');
+    }
+  } catch (error) {
+    addTerminalOutput(output, `执行失败: ${error.message}`, 'error');
+  }
+}
+
+function addTerminalOutput(output, text, type = 'stdout') {
+  if (!output) return;
+
+  const line = document.createElement('div');
+  line.className = `output-line ${type}`;
+  line.textContent = text;
+  output.appendChild(line);
+  output.scrollTop = output.scrollHeight;
 }
 
 export function switchToTab(tabId) {
@@ -370,6 +507,7 @@ export function closeTab(tabId) {
   if (index === -1) return;
 
   const [closedTab] = state.openTabs.splice(index, 1);
+  const closedTabGroupId = closedTab.groupId;
 
   // 从分组中移除
   state.editorGroups.forEach(group => {
@@ -386,14 +524,70 @@ export function closeTab(tabId) {
   const contentEl = document.querySelector(`.tab-content[data-tab-id="${tabId}"]`);
   if (contentEl) contentEl.remove();
 
-  // 如果关闭的是当前激活的标签，切换到其他标签
-  if (state.activeTab === tabId) {
-    if (state.openTabs.length > 0) {
-      switchToTab(state.openTabs[state.openTabs.length - 1].id);
-    } else {
-      switchToWelcome();
+  // 检查并删除空分组（不包括 main 分组）
+  if (closedTabGroupId && closedTabGroupId !== 'main') {
+    const group = state.editorGroups.find(g => g.id === closedTabGroupId);
+    if (group && group.tabs.length === 0) {
+      // 删除空分组
+      const groupEl = document.querySelector(`[data-group-id="${closedTabGroupId}"]`);
+      if (groupEl) {
+        const handle = groupEl.previousElementSibling;
+        if (handle && handle.classList.contains('split-handle')) {
+          handle.remove();
+        }
+        groupEl.remove();
+      }
+      state.editorGroups = state.editorGroups.filter(g => g.id !== closedTabGroupId);
+
+      // 如果当前活跃分组被删除，切换到 main
+      if (state.activeGroup === closedTabGroupId) {
+        state.activeGroup = 'main';
+      }
     }
   }
+
+  // 如果关闭的是当前激活的标签，切换到其他标签
+  if (state.activeTab === tabId) {
+    // 找到同一分组的其他标签
+    const groupTabs = state.openTabs.filter(t => t.groupId === closedTabGroupId);
+    if (groupTabs.length > 0) {
+      switchToTab(groupTabs[0].id);
+    } else if (state.openTabs.length > 0) {
+      // 切换到任何其他标签
+      switchToTab(state.openTabs[0].id);
+    } else {
+      // 所有标签都已关闭，清理额外分屏并显示欢迎页
+      cleanupExtraGroups();
+      switchToWelcome();
+    }
+  } else if (state.openTabs.length === 0) {
+    // 所有标签都已关闭
+    cleanupExtraGroups();
+    switchToWelcome();
+  }
+}
+
+// 清理所有额外的分屏，只保留 main 分组
+function cleanupExtraGroups() {
+  const editorGroups = $('editor-groups');
+  if (!editorGroups) return;
+
+  // 获取所有非 main 的分组
+  const extraGroups = editorGroups.querySelectorAll('.editor-group[data-group-id]:not([data-group-id="main"])');
+
+  extraGroups.forEach(groupEl => {
+    // 删除分隔条
+    const handle = groupEl.previousElementSibling;
+    if (handle && handle.classList.contains('split-handle')) {
+      handle.remove();
+    }
+    // 删除分组元素
+    groupEl.remove();
+  });
+
+  // 更新 state，只保留 main 分组
+  state.editorGroups = state.editorGroups.filter(g => g.id === 'main');
+  state.activeGroup = 'main';
 }
 
 export function switchToWelcome() {

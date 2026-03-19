@@ -1,4 +1,32 @@
 /* Terminal - 终端 */
+.terminal-tab-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.terminal-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary);
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.terminal-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
 .terminal-input-area {
   display: flex;
   padding: 8px 12px;
@@ -48,4 +76,5 @@
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   line-height: 1.6;
+  min-height: 0;
 }

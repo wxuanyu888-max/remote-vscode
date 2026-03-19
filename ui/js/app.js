@@ -14,6 +14,12 @@ function initViewSwitcher() {
     btn.addEventListener('click', () => {
       const view = btn.dataset.view;
 
+      // 终端按钮特殊处理：打开终端标签而不是切换视图
+      if (view === 'terminal') {
+        import('./modules/tabs.js').then(m => m.openTerminalTab());
+        return;
+      }
+
       // 更新活动栏按钮状态
       activityBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');

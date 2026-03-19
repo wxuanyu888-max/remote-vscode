@@ -53,23 +53,20 @@ export function splitEditor(direction, tabId = null) {
   editorGroups.insertBefore(handle, lastGroup);
   editorGroups.insertBefore(newGroupEl, lastGroup);
 
-  // 如果有当前标签，将其复制到新分组
+  // 如果有当前标签，将其移动到新分组
   if (currentTab) {
-    const newTabId = currentTab.type === 'file'
-      ? 'file-' + (++state.tabIdCounter)
-      : 'chat-' + (++state.tabIdCounter);
+    // 从原分组中移除
+    const oldGroup = state.editorGroups.find(g => g.id === state.activeGroup);
+    if (oldGroup) {
+      const idx = oldGroup.tabs.indexOf(currentTabId);
+      if (idx > -1) {
+        oldGroup.tabs.splice(idx, 1);
+      }
+    }
 
-    const newTab = {
-      id: newTabId,
-      type: currentTab.type,
-      name: currentTab.name,
-      path: currentTab.path,
-      sessionId: currentTab.sessionId,
-      groupId: newGroupId
-    };
-
-    state.openTabs.push(newTab);
-    newGroup.tabs.push(newTabId);
+    // 更新标签的 groupId
+    currentTab.groupId = newGroupId;
+    newGroup.tabs.push(currentTabId);
   }
 
   state.activeGroup = newGroupId;
@@ -216,6 +213,8 @@ export function closeGroup(tabId) {
 
   targetGroupEl = editorGroups.querySelector(`[data-group-id="${targetGroupId}"]`);
 
+  // 保存要切换到的标签 ID
+  let tabToSwitch = null;
   if (targetGroup && targetGroup.tabs.length > 0) {
     targetGroup.tabs.forEach(tid => {
       const tab = state.openTabs.find(t => t.id === tid);
@@ -224,12 +223,12 @@ export function closeGroup(tabId) {
         const mainGroup = state.editorGroups.find(g => g.id === 'main');
         if (mainGroup) {
           mainGroup.tabs.push(tid);
+          if (!tabToSwitch) {
+            tabToSwitch = tid;
+          }
         }
       }
     });
-    if (targetGroup.tabs.length > 0) {
-      switchToTab(targetGroup.tabs[0]);
-    }
   }
 
   state.editorGroups = state.editorGroups.filter(g => g.id !== targetGroupId);
@@ -243,6 +242,15 @@ export function closeGroup(tabId) {
   }
 
   state.activeGroup = 'main';
+
+  // 刷新标签栏和内容
+  refreshTabBar();
+  refreshTabContents();
+
+  // 切换到合适的标签
+  if (tabToSwitch) {
+    switchToTab(tabToSwitch);
+  }
 }
 
 export function closeGroupById(groupId) {
@@ -258,6 +266,8 @@ export function closeGroupById(groupId) {
 
   const targetGroupEl = editorGroups.querySelector(`[data-group-id="${groupId}"]`);
 
+  // 保存要切换到的标签 ID
+  let tabToSwitch = null;
   if (targetGroup && targetGroup.tabs.length > 0) {
     targetGroup.tabs.forEach(tid => {
       const tab = state.openTabs.find(t => t.id === tid);
@@ -266,12 +276,13 @@ export function closeGroupById(groupId) {
         const mainGroup = state.editorGroups.find(g => g.id === 'main');
         if (mainGroup) {
           mainGroup.tabs.push(tid);
+          // 记录第一个要切换的标签
+          if (!tabToSwitch) {
+            tabToSwitch = tid;
+          }
         }
       }
     });
-    if (targetGroup.tabs.length > 0) {
-      switchToTab(targetGroup.tabs[0]);
-    }
   }
 
   state.editorGroups = state.editorGroups.filter(g => g.id !== groupId);
@@ -285,6 +296,15 @@ export function closeGroupById(groupId) {
   }
 
   state.activeGroup = 'main';
+
+  // 刷新标签栏和内容
+  refreshTabBar();
+  refreshTabContents();
+
+  // 切换到合适的标签
+  if (tabToSwitch) {
+    switchToTab(tabToSwitch);
+  }
 }
 
 export function initSplitHandles() {

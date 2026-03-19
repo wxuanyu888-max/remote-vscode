@@ -69,6 +69,8 @@
   cursor: col-resize;
   flex-shrink: 0;
   transition: background 0.15s;
+  position: relative;
+  z-index: 20;
 }
 
 .split-handle:hover,
