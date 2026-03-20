@@ -380,14 +380,15 @@ router.post('/send', async (req, res) => {
   env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '';
 
   // 使用 -p 模式发送消息
-  // 只有当 sessionId 是有效的真实 session ID 时才使用 --continue
-  // 'new' 或空值表示新 session，不使用 --continue
-  // 注意：session-* 格式的 ID 是通过 API 新创建的，--continue 可能无法识别，使用 -p 即可
+  // 策略：对于所有有效的 sessionId，都尝试使用 --continue 让 Claude 加载上下文
+  // 如果 sessionId 不存在或为 'new'，则创建新对话
   // --dangerously-skip-permissions: 自动批准所有权限请求，无需手动确认
   let args;
-  if (sessionId && sessionId !== 'new' && !sessionId.startsWith('session-')) {
-    args = ['--continue', sessionId, '--dangerously-skip-permissions', '-p', message];
+  if (sessionId && sessionId !== 'new') {
+    // 有 sessionId，使用 --continue 继续该会话的上下文
+    args = ['--dangerously-skip-permissions', '--continue', sessionId, '-p', message];
   } else {
+    // 没有 sessionId 或明确指定 'new'，创建全新对话
     args = ['--dangerously-skip-permissions', '-p', message];
   }
 
@@ -557,6 +558,8 @@ router.get('/stream/:id', (req, res) => {
     try {
       const stat = fs.statSync(sessionFile);
 
+      console.log(`[SSE ${id}] checking: stat.size=${stat.size}, lastSize=${lastSize}, hasNew=${stat.size > lastSize}`);
+
       // 文件有新内容
       if (stat.size > lastSize) {
         try {
@@ -594,6 +597,7 @@ router.get('/stream/:id', (req, res) => {
           if (messages.length > 0) {
             // 只发送最新的 5 条消息，避免数据量过大
             const recentMessages = messages.slice(-5);
+            console.log(`[SSE] ${id}: sending update with ${recentMessages.length} messages`);
             res.write(`data: ${JSON.stringify({
               type: 'update',
               sessionId: id,

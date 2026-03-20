@@ -2,6 +2,7 @@
 import { state, $ } from './state.js';
 import { apiRequest } from './api.js';
 import { decodeProjectPath, encodeProjectPath } from './projects.js';
+import { shouldFilterText, shouldFilterMessage, shouldFilter, truncateText } from './filters.js';
 
 // HTML 转义函数
 function escapeHtml(text) {
@@ -347,8 +348,7 @@ export async function selectSession(sessionId) {
         } catch (e) {
           // 非 JSON 行直接显示，但过滤掉 system-reminder
           const trimmed = line.trim();
-          if (trimmed && trimmed.length < 500 &&
-              !trimmed.includes('system-reminder')) {
+          if (trimmed && trimmed.length < 500 && !shouldFilterText(trimmed)) {
             addMessage(chatMessages, trimmed, '');
           }
         }
@@ -557,17 +557,11 @@ function extractText(content) {
 
 // 添加消息到界面
 function addMessage(container, text, type) {
-  if (!text || !text.trim()) return;
-
-  // 过滤 <system-reminder>
-  if (text.includes('<system-reminder>')) return;
-
-  // 过滤看起来像会话ID的字符串
-  if (looksLikeSessionId(text.trim())) return;
+  if (shouldFilterText(text)) return;
 
   const lineEl = document.createElement('div');
   lineEl.className = 'output-line ' + type;
-  const truncatedText = text.substring(0, 1000);
+  const truncatedText = truncateText(text, 1000);
 
   if (type === 'stdout') {
     // stdout 使用 Markdown 渲染，前面加 ●
@@ -584,8 +578,8 @@ function addMessage(container, text, type) {
                              .replace(/on\w+='[^']*'/gi, '');
     lineEl.innerHTML = `<span class="msg-bullet">●</span><span class="msg-text">${safeHtml}</span>`;
   } else if (type === 'input') {
-    // input 不加 ●，使用纯文本
-    lineEl.textContent = truncatedText;
+    // input 加上 ●，使用纯文本
+    lineEl.innerHTML = `<span class="msg-bullet">●</span><span class="msg-text">${escapeHtml(truncatedText)}</span>`;
   } else {
     lineEl.textContent = truncatedText;
   }
@@ -666,13 +660,30 @@ function handleStreamMessage(data) {
   // 统一的输出元素查找 - 如果没有 sessionId，使用当前 session
   const sessionId = data.sessionId || state.currentSession;
   const output = findOutputElement(sessionId);
-  if (!output) return;
+  console.log('[handleStreamMessage]', { dataSessionId: data.sessionId, stateCurrentSession: state.currentSession, sessionId, outputFound: !!output });
+  if (!output) {
+    console.log('[handleStreamMessage] NO OUTPUT, trying fallback...');
+    // 尝试找任何一个 chat-messages 元素
+    const anyOutput = document.querySelector('.chat-messages');
+    if (anyOutput) {
+      console.log('[handleStreamMessage] Using fallback output');
+      handleStreamMessageWithOutput(data, anyOutput);
+    }
+    return;
+  }
+
+  handleStreamMessageWithOutput(data, output);
+}
+
+function handleStreamMessageWithOutput(data, output) {
 
   // 直接处理所有消息，不管 type 是什么
   const content = data.messages || data.content || data.message?.content;
+  console.log('[handleStreamMessageWithOutput] type:', data.type, 'hasMessages:', !!data.messages, 'hasContent:', !!content, 'contentType:', Array.isArray(content) ? 'array' : typeof content);
 
   // 如果有 messages 数组（update 类型）
   if (Array.isArray(data.messages)) {
+    console.log('[handleStreamMessageWithOutput] rendering', data.messages.length, 'messages');
     renderMessages(output, data.messages);
     output.scrollTop = output.scrollHeight;
     return;
@@ -680,6 +691,7 @@ function handleStreamMessage(data) {
 
   // 如果有 content 数组
   if (Array.isArray(content)) {
+    console.log('[handleStreamMessageWithOutput] rendering content array, length:', content.length);
     renderContentArray(output, content, data.message?.role || 'assistant');
     output.scrollTop = output.scrollHeight;
     return;
@@ -687,32 +699,22 @@ function handleStreamMessage(data) {
 
   // 如果有字符串 content
   if (typeof content === 'string' && content.trim()) {
-    if (!content.includes('<system-reminder>') && !looksLikeSessionId(content)) {
+    console.log('[handleStreamMessageWithOutput] string content:', content.substring(0, 100));
+    if (!shouldFilterText(content)) {
       addMessage(output, content, data.type === 'user' ? 'input' : 'stdout');
       output.scrollTop = output.scrollHeight;
     }
     return;
   }
-}
 
-// 检查字符串是否看起来像会话ID/UUID而不是实际内容
-function looksLikeSessionId(str) {
-  if (!str || typeof str !== 'string') return false;
-  // UUID 格式: 8-4-4-4-12 十六进制字符
-  // 或者类似 3412d4de-f81b-430f-9474-65e67ba0518b 这样的会话ID
-  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  // 简化检测：如果字符串是 36 个字符且包含 4 个短横线，很可能是 UUID
-  if (str.length === 36 && (str.match(/-/g) || []).length === 4) {
-    return true;
-  }
-  return false;
+  console.log('[handleStreamMessageWithOutput] no content to render');
 }
 
 // 渲染消息数组到输出元素
 function renderMessages(output, messages) {
   for (const msg of messages) {
-    // 跳过元消息
-    if (msg.isMeta) {
+    // 跳过被过滤的消息
+    if (shouldFilterMessage(msg)) {
       continue;
     }
 
@@ -720,14 +722,19 @@ function renderMessages(output, messages) {
     const content = msg.message?.content || msg.content;
     const role = msg.message?.role || msg.type;
 
+    console.log('[renderMessages]', { role, contentType: typeof content, isArray: Array.isArray(content), content: typeof content === 'string' ? content.substring(0, 100) : content });
+
     // 统一处理：如果是数组，交给 renderContentArray
     if (Array.isArray(content)) {
       renderContentArray(output, content, role);
     } else if (typeof content === 'string') {
       // 字符串直接显示
-      if (!content.includes('<system-reminder>') && !looksLikeSessionId(content)) {
+      if (!shouldFilterText(content)) {
         addMessage(output, content, role === 'user' ? 'input' : 'stdout');
       }
+    } else if (typeof content === 'object' && content !== null) {
+      // content 是对象 { type: 'text', text: '...' } 或其他
+      renderContentArray(output, [content], role);
     }
   }
 }
@@ -736,7 +743,7 @@ function renderMessages(output, messages) {
 function renderContentArray(output, content, defaultRole = 'assistant') {
   if (!content) return;
   if (!Array.isArray(content)) {
-    if (typeof content === 'string' && !content.includes('<system-reminder>') && !looksLikeSessionId(content)) {
+    if (typeof content === 'string' && !shouldFilterText(content)) {
       addMessage(output, content, defaultRole === 'user' ? 'input' : 'stdout');
     }
     return;
@@ -744,7 +751,7 @@ function renderContentArray(output, content, defaultRole = 'assistant') {
 
   for (const item of content) {
     if (item.type === 'thinking') continue;
-    if (JSON.stringify(item).includes('<system-reminder>')) continue;
+    if (shouldFilterMessage(item)) continue;
 
     if (item.type === 'text' && item.text) {
       // 检查 item.text 是否是被 JSON.stringify 处理过的字符串
@@ -780,7 +787,7 @@ function renderContentArray(output, content, defaultRole = 'assistant') {
         // 不是 JSON 字符串，保持原样
       }
       // 过滤掉看起来像会话ID的字符串和 system-reminder
-      if (!text.includes('<system-reminder>') && !looksLikeSessionId(text)) {
+      if (!shouldFilterText(text)) {
         addMessage(output, text, defaultRole === 'user' ? 'input' : 'stdout');
       }
     } else if (item.type === 'tool_use' && item.name) {

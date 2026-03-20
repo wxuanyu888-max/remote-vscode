@@ -33,7 +33,13 @@
       "Bash(curl -s \"http://localhost:3000/api/chat/session/c778ef89-2c3f-48e6-9681-5920fe3bc8c4\" | head -c 3000)",
       "Bash(curl -s \"http://localhost:3000/api/chat/session/3412d4de-f81b-430f-9474-65e67ba0518b\" | grep -c '\"type\":\"user\"')",
       "mcp__playwright__browser_handle_dialog",
-      "Bash(taskkill //F //PID 16916 2>/dev/null; taskkill //F //IM node.exe 2>/dev/null; sleep 1; echo \"Processes killed\")"
+      "Bash(taskkill //F //PID 16916 2>/dev/null; taskkill //F //IM node.exe 2>/dev/null; sleep 1; echo \"Processes killed\")",
+      "Bash(node -e \"\nconst text = 'Read\\(C:\\\\\\\\Users\\\\\\\\29718\\\\\\\\remote-vscode\\\\\\\\ui\\\\\\\\js\\\\\\\\modules\\\\\\\\sessions.js\\)';\nconst toolPattern = /^\\(Read|Write|Edit|Bash|Glob|Grep|TaskCreate|TaskUpdate|TaskOutput|WebSearch|WebFetch|Markedio\\)\\\\s*\\\\\\(/i;\nconsole.log\\('Input:', text\\);\nconsole.log\\('Trimmed:', text.trim\\(\\)\\);\nconsole.log\\('Match:', toolPattern.test\\(text.trim\\(\\)\\)\\);\n\")",
+      "Bash(node -e \"\nconst text = 'Read\\(C:\\\\\\\\\\\\\\\\Users\\\\\\\\\\\\\\\\29718\\\\\\\\\\\\\\\\remote-vscode\\\\\\\\\\\\\\\\ui\\\\\\\\\\\\\\\\js\\\\\\\\\\\\\\\\modules\\\\\\\\\\\\\\\\sessions.js\\)';\nconst toolPattern = /^\\(Read|Write|Edit|Bash|Glob|Grep|TaskCreate|TaskUpdate|TaskOutput|WebSearch|WebFetch|Markedio\\)\\\\\\\\s*\\\\\\\\\\(/i;\nconsole.log\\('Input:', text\\);\nconsole.log\\('Trimmed:', text.trim\\(\\)\\);\nconsole.log\\('Match:', toolPattern.test\\(text.trim\\(\\)\\)\\);\n\")",
+      "Bash(node -e 'const text = \"Read\\(C:/Users/29718/remote-vscode/ui/js/modules/sessions.js\\)\"; const toolPattern = /^\\(Read|Write|Edit|Bash|Glob|Grep|TaskCreate|TaskUpdate|TaskOutput|WebSearch|WebFetch|Markedio\\)\\\\s*\\\\\\(/i; console.log\\(\"Input:\", text\\); console.log\\(\"Trimmed:\", text.trim\\(\\)\\); console.log\\(\"Match:\", toolPattern.test\\(text.trim\\(\\)\\)\\);')",
+      "Bash(curl -s http://localhost:3000/api/chat/health)",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_evaluate"
     ],
     "deny": [
       "Bash(rm -rf **)",
