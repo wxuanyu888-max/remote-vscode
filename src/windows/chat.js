@@ -595,8 +595,8 @@ router.get('/stream/:id', (req, res) => {
           console.log(`[SSE] ${id}: parsed ${messages.length} messages`);
 
           if (messages.length > 0) {
-            // 只发送最新的 5 条消息，避免数据量过大
-            const recentMessages = messages.slice(-5);
+            // 每次最多发送 15 条消息，减少轮询次数同时保证实时性
+            const recentMessages = messages.slice(-15);
             console.log(`[SSE] ${id}: sending update with ${recentMessages.length} messages`);
             res.write(`data: ${JSON.stringify({
               type: 'update',
@@ -627,7 +627,7 @@ router.get('/stream/:id', (req, res) => {
     } catch (e) {
       res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
     }
-  }, 2000);  // 每 2 秒检查一次
+  }, 500);  // 每 500ms 检查一次（提升同步速度）
 
   // 客户端断开时清理
   req.on('close', () => {

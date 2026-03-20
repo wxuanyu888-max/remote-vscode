@@ -22,39 +22,68 @@ function escapeToolName(name) {
 let contextMenuSessionId = null;
 
 // 导出函数，供 api.js 使用 - 查找 session 对应的 output 元素
+// 策略：优先使用主 #chat-messages，确保消息总是能显示
 export function findSessionOutput(sessionId) {
   const targetSessionId = sessionId || state.currentSession;
-  if (!targetSessionId) return null;
 
-  const tab = state.openTabs.find(t => t.sessionId === targetSessionId && t.type === 'chat');
-  if (!tab) return null;
+  // 首先检查是否有活动的 chat tab，并且该 tab 可见
+  // 只有当 tab 可见时，才把消息发送到 tab 的 chat-messages
+  const activeTab = state.openTabs.find(t => t.type === 'chat' && t.sessionId === targetSessionId);
+  if (activeTab) {
+    const activeTabContent = document.querySelector('.tab-content.active');
+    if (activeTabContent && activeTabContent.id === `tab-content-${activeTab.id}`) {
+      // 用户正在查看这个 tab，把消息发送到 tab 的 chat-messages
+      const tabOutput = document.querySelector(`#chat-messages-${activeTab.id}`);
+      if (tabOutput) {
+        return tabOutput;
+      }
+    }
+  }
 
-  return document.querySelector(`#chat-messages-${tab.id}`);
+  // 默认：使用主 #chat-messages 容器（最可靠）
+  const mainOutput = $('chat-messages');
+  if (mainOutput) {
+    return mainOutput;
+  }
+
+  return null;
 }
 
 // 查找输出元素（带 fallback）
+// 策略：优先使用主 #chat-messages，确保消息总是能显示
 function findOutputElement(sessionId) {
-  let output = findSessionOutput(sessionId);
-  if (!output && state.currentSession && state.currentSession !== sessionId) {
-    output = findSessionOutput(state.currentSession);
-  }
-  if (!output) {
+  // 首先检查是否有活动的 chat tab，并且该 tab 可见
+  // 只有当 tab 可见时，才把消息发送到 tab 的 chat-messages
+  const activeTab = state.openTabs.find(t => t.type === 'chat' && t.sessionId === (sessionId || state.currentSession));
+  if (activeTab) {
     const activeTabContent = document.querySelector('.tab-content.active');
-    if (activeTabContent) {
-      output = activeTabContent.querySelector('.chat-messages');
+    if (activeTabContent && activeTabContent.id === `tab-content-${activeTab.id}`) {
+      // 用户正在查看这个 tab，把消息发送到 tab 的 chat-messages
+      const tabOutput = document.querySelector(`#chat-messages-${activeTab.id}`);
+      if (tabOutput) {
+        console.log('[findOutputElement] Using tab output:', activeTab.id);
+        return tabOutput;
+      }
     }
   }
-  if (!output) {
-    output = $('chat-messages') || document.getElementById('session-output');
+
+  // 默认：使用主 #chat-messages 容器（最可靠）
+  const mainOutput = $('chat-messages');
+  if (mainOutput) {
+    console.log('[findOutputElement] Using main #chat-messages');
+    return mainOutput;
   }
-  return output;
+
+  // 最后 fallback
+  console.log('[findOutputElement] Using session-output fallback');
+  return document.getElementById('session-output');
 }
 
 // 加载并显示 session 历史消息
 async function loadSessionHistory(sessionId, maxLength = 5000) {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000); // 5秒超时
+    const timeout = setTimeout(() => controller.abort(), 3000); // 3秒超时（加快失败速度）
 
     const data = await apiRequest(`/api/chat/session/${sessionId}`);
     clearTimeout(timeout);
@@ -590,9 +619,6 @@ function addMessage(container, text, type) {
 function renderHistoryMessage(container, msg) {
   const role = msg.message?.role || msg.type;
   const content = msg.message?.content || msg.content;
-  if (role === 'user') {
-    console.log('[renderHistoryMessage] user msg:', JSON.stringify(msg).substring(0, 500));
-  }
 
   if (role === 'user') {
     // user 消息可能是工具结果或用户输入，统一用 extractText 处理
@@ -657,18 +683,11 @@ export function connectSessionStream(sessionId) {
 }
 
 function handleStreamMessage(data) {
-  // 统一的输出元素查找 - 如果没有 sessionId，使用当前 session
-  const sessionId = data.sessionId || state.currentSession;
-  const output = findOutputElement(sessionId);
-  console.log('[handleStreamMessage]', { dataSessionId: data.sessionId, stateCurrentSession: state.currentSession, sessionId, outputFound: !!output });
+  // 查找输出元素（使用 findOutputElement，它会优先使用主 #chat-messages）
+  const output = findOutputElement(data.sessionId || state.currentSession);
+
   if (!output) {
-    console.log('[handleStreamMessage] NO OUTPUT, trying fallback...');
-    // 尝试找任何一个 chat-messages 元素
-    const anyOutput = document.querySelector('.chat-messages');
-    if (anyOutput) {
-      console.log('[handleStreamMessage] Using fallback output');
-      handleStreamMessageWithOutput(data, anyOutput);
-    }
+    console.log('[handleStreamMessage] CRITICAL: No output element found!');
     return;
   }
 
@@ -676,14 +695,17 @@ function handleStreamMessage(data) {
 }
 
 function handleStreamMessageWithOutput(data, output) {
-
-  // 直接处理所有消息，不管 type 是什么
+  const type = data.type;
   const content = data.messages || data.content || data.message?.content;
-  console.log('[handleStreamMessageWithOutput] type:', data.type, 'hasMessages:', !!data.messages, 'hasContent:', !!content, 'contentType:', Array.isArray(content) ? 'array' : typeof content);
+  const role = data.message?.role || (type === 'user' ? 'user' : 'assistant');
+
+  // 如果是用户消息，移除 pending 标记的消息（避免重复）
+  if (type === 'user' || role === 'user') {
+    removePendingMessage(output);
+  }
 
   // 如果有 messages 数组（update 类型）
   if (Array.isArray(data.messages)) {
-    console.log('[handleStreamMessageWithOutput] rendering', data.messages.length, 'messages');
     renderMessages(output, data.messages);
     output.scrollTop = output.scrollHeight;
     return;
@@ -691,23 +713,28 @@ function handleStreamMessageWithOutput(data, output) {
 
   // 如果有 content 数组
   if (Array.isArray(content)) {
-    console.log('[handleStreamMessageWithOutput] rendering content array, length:', content.length);
-    renderContentArray(output, content, data.message?.role || 'assistant');
+    renderContentArray(output, content, role);
     output.scrollTop = output.scrollHeight;
     return;
   }
 
   // 如果有字符串 content
   if (typeof content === 'string' && content.trim()) {
-    console.log('[handleStreamMessageWithOutput] string content:', content.substring(0, 100));
     if (!shouldFilterText(content)) {
-      addMessage(output, content, data.type === 'user' ? 'input' : 'stdout');
+      addMessage(output, content, type === 'user' ? 'input' : 'stdout');
       output.scrollTop = output.scrollHeight;
     }
     return;
   }
 
-  console.log('[handleStreamMessageWithOutput] no content to render');
+  // 对于 type 为 'output' 但没有 content 的情况
+  if (type === 'output' && !content && data.response) {
+    if (!shouldFilterText(data.response)) {
+      addMessage(output, data.response, 'stdout');
+      output.scrollTop = output.scrollHeight;
+    }
+    return;
+  }
 }
 
 // 渲染消息数组到输出元素
@@ -722,7 +749,10 @@ function renderMessages(output, messages) {
     const content = msg.message?.content || msg.content;
     const role = msg.message?.role || msg.type;
 
-    console.log('[renderMessages]', { role, contentType: typeof content, isArray: Array.isArray(content), content: typeof content === 'string' ? content.substring(0, 100) : content });
+    // 如果是用户消息，移除 pending 标记的消息（避免重复）
+    if (role === 'user' || msg.type === 'user') {
+      removePendingMessage(output);
+    }
 
     // 统一处理：如果是数组，交给 renderContentArray
     if (Array.isArray(content)) {
@@ -736,6 +766,14 @@ function renderMessages(output, messages) {
       // content 是对象 { type: 'text', text: '...' } 或其他
       renderContentArray(output, [content], role);
     }
+  }
+}
+
+// 移除 pending 标记的用户消息
+function removePendingMessage(output) {
+  const pending = output.querySelector('[data-source="pending"]');
+  if (pending) {
+    pending.remove();
   }
 }
 

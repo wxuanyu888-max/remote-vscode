@@ -36,7 +36,7 @@ export function connectWS() {
   ws.onclose = () => {
     updateConnectionStatus(false);
     // 重连
-    setTimeout(connectWS, 3000);
+    setTimeout(connectWS, 1000);  // 1秒重连（提升同步速度）
   };
 
   ws.onmessage = (event) => {
@@ -64,26 +64,17 @@ function updateConnectionStatus(connected) {
 }
 
 function handleWSMessage(data) {
-  console.log('[WS recv]', data.type, data.sessionId ? data.sessionId.substring(0,8) : 'null');
   const { type, sessionId } = data;
 
-  if (type === 'output') {
-    // Claude 的实时输出，可能是文本或 JSON
-    handleClaudeOutput(data.data, sessionId);
-  } else if (type === 'user') {
-    addSessionOutput(data.data, 'input', sessionId);
-  } else if (type === 'error') {
-    addSessionOutput(data.data, 'error', sessionId);
-  } else if (type === 'status') {
-    updateSessionStatus(data.data, sessionId);
-  } else if (type === 'done') {
-    updateSessionStatus('done', sessionId);
-  } else if (type === 'message') {
-    handleClaudeOutput(data.content || data.text, sessionId);
-  } else if (type === 'system' || type === 'system-reminder') {
-    // 跳过 system 消息
+  // Chat 消息现在只通过 SSE 接收，禁用 WebSocket 的 chat 消息处理
+  // 这样可以避免双重通道导致的重复或不同步问题
+  if (type === 'output' || type === 'user' || type === 'error' ||
+      type === 'status' || type === 'done' || type === 'message') {
+    // Chat 消息跳过，由 SSE 处理
     return;
-  } else if (type === 'terminal') {
+  }
+
+  if (type === 'terminal') {
     addTerminalOutput(data.data, data.subtype || 'stdout');
   }
 }
@@ -157,7 +148,7 @@ function renderClaudeMessage(msg, sessionId) {
     const toolInfo = msg.content || msg;
     const toolName = toolInfo.name || 'Unknown';
     const toolInput = toolInfo.input ? JSON.stringify(toolInfo.input, null, 2).substring(0, 200) : '';
-    addSessionOutput(`[Edit] ${toolName}${toolInput ? ' ' + toolInput : ''}`, 'tool-use', sessionId);
+    addSessionOutput(`[${toolName}]${toolInput ? ' ' + toolInput : ''}`, 'tool-use', sessionId);
     return;
   }
 
@@ -181,7 +172,7 @@ function renderClaudeMessage(msg, sessionId) {
         if (item.type === 'text' && item.text) {
           addSessionOutput(item.text, 'input', sessionId);
         } else if (item.type === 'tool_use' && item.name) {
-          addSessionOutput(`[Edit] ${item.name}`, 'tool-use', sessionId);
+          addSessionOutput(`[${item.name}]`, 'tool-use', sessionId);
         }
       }
     }
@@ -198,7 +189,7 @@ function renderClaudeMessage(msg, sessionId) {
         if (item.type === 'text' && item.text) {
           addSessionOutput(item.text, 'stdout', sessionId);
         } else if (item.type === 'tool_use' && item.name) {
-          addSessionOutput(`[Edit] ${item.name}`, 'tool-use', sessionId);
+          addSessionOutput(`[${item.name}]`, 'tool-use', sessionId);
         } else if (item.type === 'tool_result' && item.content) {
           const text = typeof item.content === 'string' ? item.content : JSON.stringify(item.content);
           addSessionOutput(text, 'stdout', sessionId);
@@ -211,7 +202,7 @@ function renderClaudeMessage(msg, sessionId) {
       if (content.type === 'text' && content.text) {
         addSessionOutput(content.text, 'stdout', sessionId);
       } else if (content.type === 'tool_use' && content.name) {
-        addSessionOutput(`[Edit] ${content.name}`, 'tool-use', sessionId);
+        addSessionOutput(`[${content.name}]`, 'tool-use', sessionId);
       } else if (content.type === 'tool_result' && content.content) {
         const text = typeof content.content === 'string' ? content.content : JSON.stringify(content.content);
         addSessionOutput(text, 'stdout', sessionId);
@@ -230,26 +221,13 @@ function addSessionOutput(text, type = 'stdout', sessionId = null) {
   // 过滤看起来像会话ID的字符串
   if (looksLikeSessionId(text.trim())) return;
 
-  // 优先使用 findSessionOutput 查找对应的 tab
+  // 使用 findSessionOutput 查找 output（现在优先使用主 #chat-messages）
   let output = findSessionOutput(sessionId);
 
-  // 如果没找到，尝试使用 currentSession
-  if (!output && state.currentSession && state.currentSession !== sessionId) {
-    output = findSessionOutput(state.currentSession);
-  }
-
-  // 如果还没找到，查找当前可见的 chat-messages 元素
   if (!output) {
-    const activeTabContent = document.querySelector('.tab-content.active');
-    if (activeTabContent) {
-      output = activeTabContent.querySelector('.chat-messages');
-    }
-    if (!output) {
-      output = document.getElementById('chat-messages') || document.getElementById('session-output');
-    }
+    console.log('[addSessionOutput] CRITICAL: No output element found!');
+    return;
   }
-
-  if (!output) return;
 
   // 统一使用 ● 标记
   const line = document.createElement('div');

@@ -154,8 +154,8 @@ async function init() {
   initSplitHandles();
   initEditorGroupDrops();
 
-  setInterval(loadSystemInfo, 5000);
-  setInterval(loadSessions, 3000);
+  setInterval(loadSystemInfo, 2000);  // 2秒刷新（提升同步速度）
+  setInterval(loadSessions, 1000);  // 1秒刷新间隔（提升同步速度）
 }
 
 document.addEventListener('DOMContentLoaded', init);

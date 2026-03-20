@@ -22,12 +22,14 @@
   color: var(--text-primary);
 }
 
-.chat-messages .output-line.user {
-  color: #ffffff;
-  background: #333333;
-  padding: 8px 12px;
+.chat-messages .output-line.user,
+.chat-messages .output-line.input {
+  color: #1e1e1e;
+  background: #e8e8e8;
+  padding: 6px 12px;
   border-radius: 8px;
-  margin: 8px 0;
+  margin: 4px 0;
+  line-height: 1.4;
 }
 
 .chat-messages .output-line.assistant {

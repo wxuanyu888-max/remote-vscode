@@ -49,8 +49,8 @@ router.post('/watch', (req, res) => {
     persistent: true,
     ignoreInitial: true,
     awaitWriteFinish: {
-      stabilityThreshold: 500,
-      pollInterval: 100
+      stabilityThreshold: 100,  // 降低阈值提升同步速度
+      pollInterval: 50        // 提高轮询频率
     }
   });
 
