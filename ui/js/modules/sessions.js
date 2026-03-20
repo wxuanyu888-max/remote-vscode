@@ -504,23 +504,43 @@ function extractText(content) {
     return content;
   }
   if (Array.isArray(content)) {
-    // 只提取 text 类型的内容，工具调用由单独的 DOM 处理
+    // 过滤掉 thinking 类型，提取所有文本内容
     const texts = [];
     for (const c of content) {
+      if (c.type === 'thinking') continue;
       if (c.type === 'text' && c.text) {
         texts.push(c.text);
+      } else if (c.type === 'input' && c.text) {
+        // 用户输入类型
+        texts.push(c.text);
+      } else if (c.type === 'tool_use') {
+        // 工具调用显示为单独 DOM，这里只返回工具名
+        texts.push(`[${c.name || 'Unknown'}]`);
+      } else if (c.type === 'tool_result' && c.content) {
+        // 工具结果由 formatToolResult 处理，这里返回空
+      } else if (c.text) {
+        // 其他有 text 字段的类型
+        texts.push(c.text);
       }
-      // tool_use 和 tool_result 由单独的 DOM 处理，不要在这里返回
     }
     return texts.join('');
   }
   if (typeof content === 'object') {
-    // 尝试从 toolUseResult 对象中提取有用信息
+    // 尝试从各种对象结构中提取有用信息
     if (content.text) return content.text;
     if (content.stdout) return content.stdout;
-    if (content.message) return content.message;
+    if (content.message) {
+      // message 可能是字符串或对象
+      if (typeof content.message === 'string') return content.message;
+      if (content.message.content) return extractText(content.message.content);
+    }
     if (content.result) return typeof content.result === 'string' ? content.result : '';
-    return '';
+    // Fallback: 返回 JSON 字符串而不是空
+    try {
+      return JSON.stringify(content).substring(0, 1000);
+    } catch (e) {
+      return '';
+    }
   }
   return '';
 }
@@ -566,27 +586,28 @@ function addMessage(container, text, type) {
 function renderHistoryMessage(container, msg) {
   const role = msg.message?.role || msg.type;
   const content = msg.message?.content || msg.content;
+  if (role === 'user') {
+    console.log('[renderHistoryMessage] user msg:', JSON.stringify(msg).substring(0, 500));
+  }
 
   if (role === 'user') {
-    // user 消息可能是工具结果或用户输入
+    // user 消息可能是工具结果或用户输入，统一用 extractText 处理
+    const text = extractText(content);
+    if (text) addMessage(container, text, 'input');
+    // 工具结果单独显示
     if (Array.isArray(content)) {
       content.forEach(c => {
         if (c.type === 'tool_result' && c.content) {
-          const text = formatToolResult(c.content);
-          if (text) addMessage(container, text, 'stdout');
-        } else if (c.type === 'text' && c.text) {
-          addMessage(container, c.text, 'input');
+          const resultText = formatToolResult(c.content);
+          if (resultText) addMessage(container, resultText, 'stdout');
         }
       });
-    } else {
-      const text = extractText(content);
-      if (text) addMessage(container, text, 'input');
     }
   } else if (role === 'assistant') {
     if (content) {
       const text = extractText(content);
       if (text) addMessage(container, text, 'stdout');
-      // 检查是否有工具调用
+      // 检查是否有工具调用或工具结果
       if (Array.isArray(content)) {
         content.forEach(c => {
           if (c.type === 'tool_use') {
@@ -595,6 +616,9 @@ function renderHistoryMessage(container, msg) {
             lineEl.style.cssText = 'background: transparent !important;';
             lineEl.innerHTML = `<span class="tool-name">${formatToolUse(c)}</span>`;
             container.appendChild(lineEl);
+          } else if (c.type === 'tool_result' && c.content) {
+            const text = formatToolResult(c.content);
+            if (text) addMessage(container, text, 'stdout');
           }
         });
       }

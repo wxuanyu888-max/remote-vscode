@@ -1,0 +1,29 @@
+[     361ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0
+[   38220ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:648
+[   38220ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/api/chat/stream/9330e785-49a6-44d5-9b8d-4e5537b2d9f0:0
+[   41721ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[   41721ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSessions (http://localhost:3000/js/modules/sessions.js:81:24) @ http://localhost:3000/js/modules/sessions.js:90
+[   41968ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[   41968ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:134:24) @ http://localhost:3000/js/app.js:141
+[  103371ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  103371ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:134:24) @ http://localhost:3000/js/app.js:141
+[  103618ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  103618ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSessions (http://localhost:3000/js/modules/sessions.js:81:24) @ http://localhost:3000/js/modules/sessions.js:90
+[  106380ms] [ERROR] WebSocket connection to 'ws://localhost:3000/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/js/modules/api.js:29
+[  106380ms] [ERROR] WebSocket错误: Event @ http://localhost:3000/js/modules/api.js:51
+[  107720ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/process/system:0
+[  107720ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:134:24) @ http://localhost:3000/js/app.js:141
+[  107720ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/api/chat/sessions:0
+[  107720ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSessions (http://localhost:3000/js/modules/sessions.js:81:24) @ http://localhost:3000/js/modules/sessions.js:90
