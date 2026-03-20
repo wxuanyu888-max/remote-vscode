@@ -383,11 +383,12 @@ router.post('/send', async (req, res) => {
   // 只有当 sessionId 是有效的真实 session ID 时才使用 --continue
   // 'new' 或空值表示新 session，不使用 --continue
   // 注意：session-* 格式的 ID 是通过 API 新创建的，--continue 可能无法识别，使用 -p 即可
+  // --dangerously-skip-permissions: 自动批准所有权限请求，无需手动确认
   let args;
   if (sessionId && sessionId !== 'new' && !sessionId.startsWith('session-')) {
-    args = ['--continue', sessionId, '-p', message];
+    args = ['--continue', sessionId, '--dangerously-skip-permissions', '-p', message];
   } else {
-    args = ['-p', message];
+    args = ['--dangerously-skip-permissions', '-p', message];
   }
 
   const cwd = projectPath && fs.existsSync(projectPath) ? projectPath : process.cwd();

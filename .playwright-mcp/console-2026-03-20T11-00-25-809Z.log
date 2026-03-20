@@ -1,0 +1,11 @@
+[       8ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:648
+[   69735ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:658
+[   69735ms] [ERROR] 发送消息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at Module.sendMessage (http://localhost:3000/js/modules/sessions.js:848:3)
+    at http://localhost:3000/js/modules/tabs.js:374:45 @ http://localhost:3000/js/modules/sessions.js:855
+[   71654ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:658
+[   71654ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:134:24)
+    at HTMLDocument.init (http://localhost:3000/js/app.js:152:3) @ http://localhost:3000/js/app.js:141

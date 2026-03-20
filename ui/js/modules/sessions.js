@@ -517,7 +517,17 @@ function extractText(content) {
         // 工具调用显示为单独 DOM，这里只返回工具名
         texts.push(`[${c.name || 'Unknown'}]`);
       } else if (c.type === 'tool_result' && c.content) {
-        // 工具结果由 formatToolResult 处理，这里返回空
+        // 工具结果如果有 content 字符串，也提取出来
+        if (typeof c.content === 'string') {
+          texts.push(c.content);
+        } else if (c.content.text) {
+          texts.push(c.content.text);
+        } else {
+          // 尝试 JSON 序列化
+          try {
+            texts.push(JSON.stringify(c.content).substring(0, 200));
+          } catch (e) {}
+        }
       } else if (c.text) {
         // 其他有 text 字段的类型
         texts.push(c.text);

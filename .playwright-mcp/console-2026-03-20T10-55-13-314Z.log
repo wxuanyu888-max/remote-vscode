@@ -1,0 +1,7 @@
+[     109ms] [ERROR] SSE连接错误: Event @ http://localhost:3000/js/modules/sessions.js:648
+[     109ms] [ERROR] [loadSessions] Error: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSessions (http://localhost:3000/js/modules/sessions.js:81:24) @ http://localhost:3000/js/modules/sessions.js:90
+[     109ms] [ERROR] 获取系统信息失败: TypeError: Failed to fetch
+    at apiRequest (http://localhost:3000/js/modules/api.js:12:26)
+    at loadSystemInfo (http://localhost:3000/js/app.js:134:24) @ http://localhost:3000/js/app.js:141
