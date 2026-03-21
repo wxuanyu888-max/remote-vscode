@@ -39,7 +39,14 @@
       "Bash(node -e 'const text = \"Read\\(C:/Users/29718/remote-vscode/ui/js/modules/sessions.js\\)\"; const toolPattern = /^\\(Read|Write|Edit|Bash|Glob|Grep|TaskCreate|TaskUpdate|TaskOutput|WebSearch|WebFetch|Markedio\\)\\\\s*\\\\\\(/i; console.log\\(\"Input:\", text\\); console.log\\(\"Trimmed:\", text.trim\\(\\)\\); console.log\\(\"Match:\", toolPattern.test\\(text.trim\\(\\)\\)\\);')",
       "Bash(curl -s http://localhost:3000/api/chat/health)",
       "mcp__playwright__browser_console_messages",
-      "mcp__playwright__browser_evaluate"
+      "mcp__playwright__browser_evaluate",
+      "Bash(find \"C:\\\\Users\\\\29718\\\\remote-vscode\" -maxdepth 1 -type f \\\\\\( -name \"*.json\" -o -name \"*.js\" -o -name \"*.mjs\" -o -name \"*.cjs\" -o -name \".*\" \\\\\\) ! -path \"*/node_modules/*\" ! -path \"*/.git/*\" 2>/dev/null | head -20)",
+      "Bash(curl -s \"http://localhost:3000/api/chat/sessions\" | head -c 500)",
+      "Bash(curl -s --max-time 2 \"http://localhost:3000/api/chat/stream/2a6f2e79-303f-4c58-9e00-0c0484d9961b?projectId=C--Users-29718-remote-vscode\" 2>&1 | head -c 500)",
+      "Bash(cd C:/Users/29718/remote-vscode && node --check src/windows/index.js 2>&1 || echo \"Syntax check failed\")",
+      "Bash(taskkill //F //IM node.exe 2>/dev/null; sleep 1; echo \"killed\")",
+      "Bash(git checkout:*)",
+      "Bash(taskkill //F //PID 22600 && sleep 1 && npm start)"
     ],
     "deny": [
       "Bash(rm -rf **)",

@@ -50,7 +50,7 @@ export function renderFileTree(items, currentPath) {
 
     return `
       <div class="file-item ${item.isDirectory ? 'directory' : 'file'}"
-           data-parent-path="${currentPath}"
+           data-parent-path="${currentPath.replace(/\\/g, '/')}"
            data-name="${item.name}"
            data-is-dir="${item.isDirectory}">
         <span class="file-icon">${icon}</span>
@@ -76,13 +76,13 @@ export function renderFileTree(items, currentPath) {
       }
 
       if (isDir) {
-        // 进入目录 - parentPath + name
-        const newPath = parentPath + '\\' + name;
+        // 进入目录 - 使用 path.join 逻辑（统一使用 / 分隔符）
+        const newPath = parentPath.replace(/\/$/, '') + '/' + name;
         console.log('[click] Navigating to:', newPath);
         loadFiles(newPath);
       } else {
-        // 打开文件 - parentPath + name
-        const fullPath = parentPath + '\\' + name;
+        // 打开文件
+        const fullPath = parentPath.replace(/\/$/, '') + '/' + name;
         console.log('[click] Opening file:', fullPath);
         openFileTab(fullPath, name);
       }

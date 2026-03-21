@@ -99,17 +99,28 @@ router.post('/close', (req, res) => {
 
   const term = terminals.get(id);
   if (term) {
-    // 监听 close 事件再返回响应，确保进程已退出
+    // 标记为正在关闭，避免重复响应
+    let responded = false;
+    const sendResponse = (data) => {
+      if (!responded) {
+        responded = true;
+        res.json(data);
+      }
+    };
+
+    // 监听 close 事件
     term.proc.on('close', () => {
       terminals.delete(id);
-      res.json({ success: true });
+      sendResponse({ success: true });
     });
+
     term.proc.kill();
-    // 如果 5 秒后还没关闭，直接删除并返回
+
+    // 如果 5 秒后还没关闭，直接删除并返回（可能进程已经僵死）
     setTimeout(() => {
       if (terminals.has(id)) {
         terminals.delete(id);
-        res.json({ success: true });
+        sendResponse({ success: true, warning: 'Force closed after timeout' });
       }
     }, 5000);
   } else {
@@ -134,6 +145,29 @@ router.post('/exec', (req, res) => {
 
   if (!command) {
     return res.status(400).json({ error: 'command is required' });
+  }
+
+  // 安全检查：只允许字母、数字、空格和常见命令字符
+  // 禁止管道、重定向、变量展开等危险字符组合
+  const forbiddenChars = /[;&|`$<>{}()\[\]!*~#?]/;
+  if (forbiddenChars.test(command)) {
+    return res.status(400).json({ error: 'Command contains forbidden characters' });
+  }
+
+  // 检查危险的命令组合
+  const dangerousPatterns = [
+    /\s+&&\s+/,         // 命令链
+    /\s*\|\s*/,         // 管道
+    /\s*>\s*/,          // 输出重定向
+    /\s*<\s*/,          // 输入重定向
+    /\$\{/,             // 变量展开
+    /`[^`]+`/,          // 命令替换
+  ];
+
+  for (const pattern of dangerousPatterns) {
+    if (pattern.test(command)) {
+      return res.status(400).json({ error: 'Command contains dangerous pattern' });
+    }
   }
 
   const workDir = cwd || process.cwd();

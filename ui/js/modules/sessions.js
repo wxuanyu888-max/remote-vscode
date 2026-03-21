@@ -4,6 +4,81 @@ import { apiRequest } from './api.js';
 import { decodeProjectPath, encodeProjectPath } from './projects.js';
 import { shouldFilterText, shouldFilterMessage, shouldFilter, truncateText } from './filters.js';
 
+// ============================================
+// Session 堆栈 - 统一管理 session 数据
+// ============================================
+class SessionStack {
+  constructor() {
+    // 堆栈：存储所有 session 数据
+    this.sessions = [];
+    // 轮询定时器
+    this.pollTimer = null;
+    // 轮询间隔（毫秒）
+    this.POLL_INTERVAL = 1000;
+  }
+
+  // 启动轮询
+  startPolling() {
+    if (this.pollTimer) return;
+    console.log('[SessionStack] Start polling');
+    this.pollTimer = setInterval(() => this.poll(), this.POLL_INTERVAL);
+  }
+
+  // 停止轮询
+  stopPolling() {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+      console.log('[SessionStack] Stop polling');
+    }
+  }
+
+  // 轮询获取最新数据
+  async poll() {
+    try {
+      const data = await apiRequest('/api/chat/sessions');
+      const newSessions = data.sessions || [];
+
+      // 检查是否有变化
+      if (this.hasChanged(newSessions)) {
+        console.log('[SessionStack] Sessions changed, updating...');
+        this.sessions = newSessions;
+        state.sessions = newSessions;
+        renderSessions();
+      }
+    } catch (e) {
+      // 轮询错误不打印，避免刷屏
+    }
+  }
+
+  // 检查数据是否有变化
+  hasChanged(newSessions) {
+    if (this.sessions.length !== newSessions.length) return true;
+
+    // 比较每个 session 的 id 和 status
+    const currentIds = new Set(this.sessions.map(s => s.id || s.sessionId));
+    const newIds = new Set(newSessions.map(s => s.id || s.sessionId));
+
+    if (currentIds.size !== newIds.size) return true;
+
+    for (const s of newSessions) {
+      const id = s.id || s.sessionId;
+      const current = this.sessions.find(cs => (cs.id || cs.sessionId) === id);
+      if (!current) return true;
+      if (current.status !== s.status) return true;
+    }
+    return false;
+  }
+
+  // 获取当前 session 列表
+  getAll() {
+    return this.sessions;
+  }
+}
+
+// 创建全局 session 堆栈实例
+const sessionStack = new SessionStack();
+
 // HTML 转义函数
 function escapeHtml(text) {
   if (!text) return '';
@@ -111,15 +186,23 @@ export async function loadSessions(projectId = null) {
     const data = await apiRequest(url);
     state.sessions = data.sessions || [];
 
+    // 更新堆栈
+    sessionStack.sessions = state.sessions;
+
     if (!state.sessions.length) {
-      sessionSelect.innerHTML = '<option value="">暂无 Session</option>';
+      sessionSelect.innerHTML = '<option value="">暂无 Session</option>' +
+        '<option value="new">+ 新建 Session</option>';
       return;
     }
 
     renderSessions();
+
+    // 启动轮询（实时更新 session 列表）
+    sessionStack.startPolling();
   } catch (error) {
     console.error('[loadSessions] Error:', error);
-    sessionSelect.innerHTML = '<option value="">加载失败</option>';
+    sessionSelect.innerHTML = '<option value="">加载失败</option>' +
+      '<option value="new">+ 新建 Session</option>';
   }
 }
 
@@ -683,8 +766,8 @@ export function connectSessionStream(sessionId) {
 }
 
 function handleStreamMessage(data) {
-  // 查找输出元素（使用 findOutputElement，它会优先使用主 #chat-messages）
-  const output = findOutputElement(data.sessionId || state.currentSession);
+  // 查找输出元素（使用 findSessionOutput，它会优先使用主 #chat-messages）
+  const output = findSessionOutput(data.sessionId || state.currentSession);
 
   if (!output) {
     console.log('[handleStreamMessage] CRITICAL: No output element found!');

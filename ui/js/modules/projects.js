@@ -57,19 +57,29 @@ export function selectProject(path, name) {
   loadFiles(path);
 }
 
-export function decodeProjectPath(folderName) {
-  let result = folderName
-    .replace(/^([a-zA-Z])--/, '$1:\\')
-    .replace(/--/g, '\\');
-  return result;
+export function encodeProjectPath(filePath) {
+  // 将 C:\Users\29718\remote-vscode 转换为 C--Users-~-29718-~-remote-vscode
+  // 驱动器号后的 \ 变成 --，其他 \ 变成 -~- (使用特殊分隔符避免与数字中的 - 混淆)
+  return filePath
+    .replace(/^([A-Za-z]):\\/, '$1--')  // C:\ -> C--
+    .replace(/\\/g, '-~-');             // \ -> -~- (使用特殊分隔符)
 }
 
-export function encodeProjectPath(filePath) {
-  // 将 C:\Users\29718\remote-vscode 转换为 C--Users-29718-remote-vscode
-  // 驱动器号后面的 \ 变成 --，其他 \ 变成 -
-  return filePath
-    .replace(/^([a-zA-Z]):\\/, '$1--')
-    .replace(/\\/g, '-');
+export function decodeProjectPath(folderName) {
+  if (!folderName) return '';
+
+  // 检查是否看起来像 Windows 路径 (字母-- 开头)
+  const windowsMatch = folderName.match(/^([a-zA-Z])--(.*)$/);
+  if (windowsMatch) {
+    // 还原为 Windows 路径格式
+    let result = windowsMatch[1] + ':\\' + windowsMatch[2];
+    // 将 -~- 还原为 \
+    result = result.replace(/-~-/g, '\\');
+    return result;
+  }
+
+  // 假设是 Unix 路径，将 -~- 替换为 /
+  return folderName.replace(/-~-/g, '/');
 }
 
 export function refreshProjects() {

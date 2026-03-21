@@ -30,8 +30,22 @@ router.get('/list', (req, res) => {
     const normalizedFullPath = path.normalize(fullPath).replace(/\//g, '\\');
 
     // 安全检查：防止目录穿越
-    if (!normalizedFullPath.startsWith(normalizedDirPath)) {
-      return res.status(403).json({ error: 'Access denied' });
+    // 使用 path.resolve 来获取绝对路径并规范化
+    let resolvedDirPath, resolvedFullPath;
+    try {
+      resolvedDirPath = path.resolve(dirPath);
+      resolvedFullPath = path.resolve(fullPath);
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid path' });
+    }
+
+    // 规范化路径（处理 .. 和 . ）
+    const safeDirPath = path.normalize(resolvedDirPath).toLowerCase();
+    const safeFullPath = path.normalize(resolvedFullPath).toLowerCase();
+
+    // 确保目标路径在允许的目录范围内
+    if (!safeFullPath.startsWith(safeDirPath + path.sep) && safeFullPath !== safeDirPath) {
+      return res.status(403).json({ error: 'Access denied: path traversal detected' });
     }
 
     if (!fs.existsSync(fullPath)) {

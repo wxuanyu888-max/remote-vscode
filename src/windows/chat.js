@@ -57,11 +57,22 @@ function getClaudeProjectsDir() {
 }
 
 // 解码项目路径
+// Claude Code 使用 -- 替换路径中的特定字符来创建目录名
 function decodeProjectPath(folderName) {
-  let result = folderName
-    .replace(/^([a-zA-Z])--/, '$1:\\')
-    .replace(/--/g, '\\');
-  return result;
+  if (!folderName) return '';
+
+  // 检查是否看起来像 Windows 路径 (字母-- 开头)
+  const windowsMatch = folderName.match(/^([a-zA-Z])--(.*)$/);
+  if (windowsMatch) {
+    // 还原为 Windows 路径格式
+    let result = windowsMatch[1] + ':\\' + windowsMatch[2];
+    // 将 -~- 还原为 \
+    result = result.replace(/-~-/g, '\\');
+    return result;
+  }
+
+  // 假设是 Unix 路径，将 -~- 替换为 /
+  return folderName.replace(/-~-/g, '/');
 }
 
 // 查找所有 Claude 会话（从项目目录）
@@ -412,8 +423,11 @@ router.post('/send', async (req, res) => {
   activeProcesses.set(currentSessionId, claude);
 
   // 发送响应的辅助函数，确保只发送一次
+  // 使用函数级别的 responded 变量，避免竞态
+  let responded = false;
   const sendResponse = (statusCode, data) => {
-    if (!procInfo.responseSent) {
+    if (!responded) {
+      responded = true;
       procInfo.responseSent = true;
       res.status(statusCode).json(data);
     }
@@ -563,23 +577,27 @@ router.get('/stream/:id', (req, res) => {
       // 文件有新内容
       if (stat.size > lastSize) {
         try {
-          // 使用固定大小的缓冲区读取文件末尾
-          const readSize = Math.min(stat.size - lastSize + 10000, 100000); // 最多读取 100KB
-          const startPos = Math.max(0, stat.size - readSize);
+          // 读取从 lastSize 到文件末尾的所有新内容
+          // 最多读取 100KB 新内容
+          const newBytes = stat.size - lastSize;
+          const readSize = Math.min(newBytes, 100000);
+          const startPos = stat.size - readSize;
 
-          // 创建缓冲区并读取文件末尾
+          // 创建缓冲区并读取
           const fd = fs.openSync(sessionFile, 'r');
           const buffer = Buffer.alloc(readSize);
           const bytesRead = fs.readSync(fd, buffer, 0, readSize, startPos);
           fs.closeSync(fd);
 
-          const content = buffer.toString('utf-8', 0, bytesRead);
-          const newContent = startPos > lastSize ? content : content.slice(lastSize - startPos);
+          // 计算新内容的起始位置（相对于读取的缓冲区）
+          // startPos 之前的部分（如果 startPos < lastSize）是重叠的旧内容
+          const offsetInBuffer = Math.max(0, lastSize - startPos);
+          const content = buffer.toString('utf-8', offsetInBuffer, bytesRead);
 
-          console.log(`[SSE] ${id}: read ${bytesRead} bytes, newContent length = ${newContent.length}, lastSize = ${lastSize}, newSize = ${stat.size}`);
+          console.log(`[SSE] ${id}: read ${bytesRead} bytes, content offset=${offsetInBuffer}, content length=${content.length}, lastSize=${lastSize}, newSize=${stat.size}`);
 
           // 解析 JSONL 行
-          const lines = newContent.trim().split('\n').filter(l => l.trim());
+          const lines = content.trim().split('\n').filter(l => l.trim());
           const messages = [];
 
           for (const line of lines) {

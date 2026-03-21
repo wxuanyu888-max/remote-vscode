@@ -1,9 +1,15 @@
 // API 和 WebSocket 模块
 import { state } from './state.js';
 import { loadSessions, findSessionOutput } from './sessions.js';
+import { looksLikeSessionId } from './filters.js';
 
 const API_BASE = window.location.origin;
 let ws = null;
+
+// WebSocket 重连退避配置
+let reconnectAttempts = 0;
+const MAX_RECONNECT_DELAY = 30000; // 最大重连延迟 30 秒
+const BASE_RECONNECT_DELAY = 1000;  // 基础重连延迟 1 秒
 
 // 流式输出：每个 session 的当前活动行
 const activeLines = new Map(); // key: sessionId, value: { element, type }
@@ -31,12 +37,19 @@ export function connectWS() {
 
   ws.onopen = () => {
     updateConnectionStatus(true);
+    reconnectAttempts = 0;  // 重置重连计数
   };
 
   ws.onclose = () => {
     updateConnectionStatus(false);
-    // 重连
-    setTimeout(connectWS, 1000);  // 1秒重连（提升同步速度）
+    // 指数退避重连
+    reconnectAttempts++;
+    const delay = Math.min(
+      BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttempts - 1),
+      MAX_RECONNECT_DELAY
+    );
+    console.log(`[WS] Disconnected, reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
+    setTimeout(connectWS, delay);
   };
 
   ws.onmessage = (event) => {
@@ -106,17 +119,6 @@ function handleClaudeOutput(text, sessionId) {
 
   // 文本内容追加到当前行
   addSessionOutput(text, 'stdout', sessionId);
-}
-
-// 检查字符串是否看起来像会话ID/UUID而不是实际内容
-function looksLikeSessionId(str) {
-  if (!str || typeof str !== 'string') return false;
-  // UUID 格式: 8-4-4-4-12 十六进制字符
-  // 如果字符串是 36 个字符且包含 4 个短横线，很可能是 UUID
-  if (str.length === 36 && (str.match(/-/g) || []).length === 4) {
-    return true;
-  }
-  return false;
 }
 
 // 根据 Claude 消息类型渲染

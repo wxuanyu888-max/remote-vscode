@@ -175,26 +175,37 @@ router.post('/kill', (req, res) => {
 
 // 获取系统信息
 router.get('/system', (req, res) => {
-  const cmd = process.platform === 'win32'
-    ? 'wmic cpu get LoadPercentage /format:csv & wmic os get FreePhysicalMemory,TotalVisibleMemorySize /format:csv'
-    : 'uptime && free -m';
+  const totalMem = os.totalmem();
+  const freeMem = os.freemem();
+  const mem = {
+    total: Math.round(totalMem / 1024 / 1024),
+    free: Math.round(freeMem / 1024 / 1024),
+    used: Math.round((totalMem - freeMem) / 1024 / 1024)
+  };
 
-  exec(cmd, (error, stdout) => {
-    let cpu = 0;
-    let mem = { total: 0, free: 0, used: 0 };
-
-    const totalMem = os.totalmem();
-    const freeMem = os.freemem();
-
-    mem = {
-      total: Math.round(totalMem / 1024 / 1024),
-      free: Math.round(freeMem / 1024 / 1024),
-      used: Math.round((totalMem - freeMem) / 1024 / 1024)
-    };
-
-    // 简单估算 CPU (Windows 上需要额外处理)
-    cpu = Math.round(os.loadavg()[0] * 10);
-
+  // Windows 上使用 PowerShell 获取 CPU 使用率
+  if (process.platform === 'win32') {
+    exec('powershell -Command "(Get-Counter \'\\Processor(_Total)\\% Processor Time\').CounterSamples.CookedValue"', {
+      maxBuffer: 1024 * 1024
+    }, (error, stdout) => {
+      let cpu = 0;
+      if (!error && stdout.trim()) {
+        cpu = Math.round(parseFloat(stdout.trim()) || 0);
+      }
+      res.json({
+        platform: os.platform(),
+        arch: os.arch(),
+        cpus: os.cpus().length,
+        uptime: os.uptime(),
+        cpu,
+        memory: mem,
+        hostname: os.hostname()
+      });
+    });
+  } else {
+    // Unix 系统使用 os.loadavg()
+    const loadavg = os.loadavg();
+    const cpu = Math.round(loadavg[0] * 10);
     res.json({
       platform: os.platform(),
       arch: os.arch(),
@@ -204,7 +215,7 @@ router.get('/system', (req, res) => {
       memory: mem,
       hostname: os.hostname()
     });
-  });
+  }
 });
 
 export default router;
